@@ -1,0 +1,90 @@
+# Local Codex/session marker
+.codex
+
+# Bytecode, interpreter caches, and native build output
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Python package/build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.egg
+MANIFEST
+
+# Virtual environments and local Python config
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Test, lint, type-check, and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Jupyter and notebook runtime noise
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Local environment, credentials, and API tokens
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.token
+
+# Generated simulation, evaluation, and dataset exports
+outputs/
+artifacts/
+submission_artifacts/
+*.jsonl
+
+# Training/checkpoint output from TRL, Accelerate, and Hugging Face workflows
+wandb/
+runs/
+checkpoints/
+models/
+lightning_logs/
+accelerate_config.yaml
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+adapter_config.json
+adapter_model.bin
+adapter_model.safetensors
+
+# Local app/demo runtime files
+logs/
+*.log
+flagged/
+.gradio/
+
+# Local package/upload archives
+*.tar.gz
+*.zip
+*.whl
+
+# Editor, OS, and shell noise
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

@@ -1,0 +1,18 @@
+[project]
+name = "mass-startup-env"
+version = "1.0.0"
+description = "OpenEnv-compatible multi-agent startup simulator for LLM CEO training."
+requires-python = ">=3.10"
+dependencies = [
+  "openenv-core>=0.1.0",
+  "pydantic>=2.0",
+  "fastapi>=0.104.0",
+  "uvicorn>=0.24.0",
+]
+
+[project.scripts]
+server = "mass_startup_env.server.app:main"
+
+[tool.setuptools]
+packages = ["mass_startup_env", "mass_startup_env.server"]
+

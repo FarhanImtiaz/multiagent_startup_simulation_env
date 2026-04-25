@@ -1,0 +1,57 @@
+{
+  "baseline": {
+    "episodes": 20,
+    "average_total_reward": -13.52,
+    "average_final_money": 19244.96,
+    "average_final_users": 116.9,
+    "survival_rate": 0.95,
+    "growth_consistency": 0.96,
+    "decision_efficiency": 0.16,
+    "best_episode_reward": -9.404,
+    "worst_episode_reward": -18.368,
+    "termination_reasons": {
+      "max_days": 19,
+      "no_users": 1
+    },
+    "action_counts": {
+      "do_nothing": 442,
+      "fire_employee": 20,
+      "invest_in_product": 47,
+      "pivot_strategy": 4,
+      "run_marketing_campaign": 84
+    }
+  },
+  "trained_ceo": {
+    "episodes": 20,
+    "average_total_reward": -12.212,
+    "average_final_money": 6543.638,
+    "average_final_users": 141.75,
+    "survival_rate": 0.95,
+    "growth_consistency": 0.969,
+    "decision_efficiency": 0.207,
+    "best_episode_reward": -9.613,
+    "worst_episode_reward": -16.226,
+    "termination_reasons": {
+      "bankrupt": 1,
+      "max_days": 19
+    },
+    "action_counts": {
+      "do_nothing": 403,
+      "fire_employee": 22,
+      "invest_in_product": 49,
+      "pivot_strategy": 1,
+      "run_marketing_campaign": 124
+    }
+  },
+  "deltas": {
+    "average_total_reward": 1.308,
+    "average_final_money": -12701.322,
+    "average_final_users": 24.85,
+    "survival_rate": 0.0,
+    "decision_efficiency": 0.047
+  },
+  "notes": [
+    "Cached trained metrics come from the prior Colab-trained LoRA CEO with safety gate.",
+    "Use --trained-mode live after placing a GRPO adapter at outputs/models/ceo-grpo or setting MASS_CEO_ADAPTER_PATH."
+  ]
+}

@@ -1,0 +1,37 @@
+name: mass-startup-env
+version: "1.0.0"
+description: >
+  Multi-Agent Startup Simulator environment for training an LLM CEO to make
+  long-horizon business decisions under partial observability, stochastic events,
+  delayed consequences, and conflicting co-founder proposals.
+author: MASS Team
+license: MIT
+entrypoint: mass_startup_env.server.app:app
+environment:
+  class: mass_startup_env.server.startup_environment:StartupOpenEnv
+  action: mass_startup_env.models:StartupAction
+  observation: mass_startup_env.models:StartupObservation
+  state: mass_startup_env.models:StartupState
+api:
+  style: gymnasium
+  methods:
+    - reset
+    - step
+    - state
+actions:
+  - hire_employee
+  - fire_employee
+  - invest_in_product
+  - run_marketing_campaign
+  - do_nothing
+  - pivot_strategy
+themes:
+  - Multi-Agent Interactions
+  - Long-Horizon Planning
+  - World Modeling
+training:
+  script: train_ceo_grpo.py
+  framework: Hugging Face TRL
+  algorithm: GRPO
+  target_agent: CEO
+  base_model: Qwen/Qwen3-0.6B
