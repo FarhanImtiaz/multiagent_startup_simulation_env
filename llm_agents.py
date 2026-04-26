@@ -264,12 +264,14 @@ class PromptedCEO:
         team_size = int(observation.get("team_size", 1))
         crisis_level = str(observation.get("crisis_level", "normal"))
 
+        crisis_or_near_crisis = crisis_level == "crisis" or runway < self.CRISIS_RUNWAY or money < burn_rate * 2
+
         if fallback.action in self.allowed_actions and self._can_afford_action(fallback.action, observation):
-            if fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
+            if not crisis_or_near_crisis or fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
                 return fallback.action
 
         if (
-            (crisis_level == "crisis" or runway < self.CRISIS_RUNWAY or money < burn_rate * 2)
+            crisis_or_near_crisis
             and finance_action == "fire_employee"
             and team_size > 1
         ):
@@ -295,7 +297,10 @@ class PromptedCEO:
         else:
             required_buffer = burn_rate * 0.5
 
-        if runway < self.CASH_CONTROL_RUNWAY and action in self.SPEND_ACTIONS:
+        if runway < self.CRISIS_RUNWAY and action in self.SPEND_ACTIONS:
+            return False
+
+        if runway < 3.0 and action in {"hire_employee", "pivot_strategy"}:
             return False
 
         return money >= cost + required_buffer
