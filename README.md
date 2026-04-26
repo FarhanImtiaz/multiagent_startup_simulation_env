@@ -205,7 +205,7 @@ The Gradio demo is implemented in `app.py`.
 It includes:
 
 - **Live Episode:** run a multi-agent startup episode and inspect the day-by-day trace.
-- **Training Result:** view training plots and baseline vs trained CEO metrics.
+- **Training Result:** view training plots and the three-policy comparison.
 - **OpenEnv:** inspect the environment interface and action space.
 
 Run locally:
@@ -291,7 +291,7 @@ python3 app.py
 - `train.py`: trajectory collection and dataset export.
 - `train_ceo_grpo.py`: Hugging Face TRL GRPO training script.
 - `llm_agents.py`: trained CEO loading, prompt scaffolding, and safety fallback logic.
-- `compare_policies.py`: baseline vs trained CEO comparison artifacts.
+- `compare_policies.py`: baseline, raw GRPO ablation, and governed GRPO comparison artifacts.
 - `mass_startup_env/`: OpenEnv-style package wrapper and server.
 - `app.py`: Gradio Hugging Face Space demo.
 - `notebooks/MASS_CEO_Training_Colab.ipynb`: Colab training workflow.

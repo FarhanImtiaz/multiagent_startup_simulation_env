@@ -137,7 +137,7 @@ The important result is that MASS evaluates the trained policy as part of a real
 The Hugging Face Space uses a Gradio app with three tabs:
 
 - **Live Episode:** run a seeded startup episode and inspect the step-by-step trace.
-- **Training Result:** view training plots and baseline vs trained CEO metrics.
+- **Training Result:** view training plots and the three-policy comparison.
 - **OpenEnv:** inspect the environment interface and action space.
 
 This makes the project easier to judge without rerunning training locally.

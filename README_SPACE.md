@@ -20,7 +20,7 @@ Tech, Growth, and Finance co-founders propose actions from noisy partial observa
 ## Space Tabs
 
 - **Live Episode:** run a seeded startup episode and inspect the day-by-day trace.
-- **Training Result:** view training plots and baseline vs trained CEO metrics.
+- **Training Result:** view training plots and the three-policy comparison.
 - **OpenEnv:** inspect the environment interface and valid action space.
 
 ## Environment Loop

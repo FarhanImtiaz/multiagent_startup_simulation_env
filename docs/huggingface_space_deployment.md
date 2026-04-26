@@ -72,7 +72,7 @@ Then commit and push. The Space will show the updated training results.
 - Space loads without dependency errors.
 - Live Episode tab returns a trace.
 - Training Result tab shows all plots.
-- Comparison table has final trained metrics.
+- Comparison table has final baseline, raw GRPO ablation, and governed GRPO metrics.
 - README links include the Space URL.
 
 Use [final_submission_checklist.md](final_submission_checklist.md) for the full automated validation checklist.

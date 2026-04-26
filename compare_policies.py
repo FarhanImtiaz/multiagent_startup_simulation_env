@@ -5,30 +5,15 @@ from typing import Dict
 
 from evaluation import evaluate
 from scripts.make_submission_artifacts import (
+    POLICY_METRICS,
     plot_bars,
     plot_reward_curve,
 )
 
 
-FINAL_TRAINED_AGGREGATE = {
-    "episodes": 20,
-    "average_total_reward": -12.212,
-    "average_final_money": 6543.638,
-    "average_final_users": 141.75,
-    "survival_rate": 0.95,
-    "growth_consistency": 0.969,
-    "decision_efficiency": 0.207,
-    "best_episode_reward": -9.613,
-    "worst_episode_reward": -16.226,
-    "termination_reasons": {"bankrupt": 1, "max_days": 19},
-    "action_counts": {
-        "do_nothing": 403,
-        "fire_employee": 22,
-        "invest_in_product": 49,
-        "pivot_strategy": 1,
-        "run_marketing_campaign": 124,
-    },
-}
+FINAL_BASELINE_AGGREGATE = POLICY_METRICS["baseline"]
+FINAL_RAW_GRPO_AGGREGATE = POLICY_METRICS["raw_grpo"]
+FINAL_GOVERNED_GRPO_AGGREGATE = POLICY_METRICS["governed_grpo"]
 
 
 def compare(
@@ -50,33 +35,25 @@ def compare(
     )
 
     if trained_mode == "live":
-        trained = evaluate(
+        governed = evaluate(
             episodes=episodes,
             horizon=horizon,
             base_seed=seed,
             agent_mode="trained_ceo",
             save_dir=str(output_path / "trained_ceo"),
         )
-        trained_aggregate = trained["aggregate"]
+        governed_aggregate = governed["aggregate"]
     else:
-        trained = {
-            "config": {
-                "episodes": 20,
-                "horizon": 30,
-                "base_seed": 7,
-                "agent_mode": "trained_ceo_cached_final",
-            },
-            "aggregate": FINAL_TRAINED_AGGREGATE,
-            "episodes": [],
-        }
-        trained_aggregate = FINAL_TRAINED_AGGREGATE
+        governed_aggregate = FINAL_GOVERNED_GRPO_AGGREGATE
 
     payload = {
         "baseline": baseline["aggregate"],
-        "trained_ceo": trained_aggregate,
-        "deltas": _deltas(baseline["aggregate"], trained_aggregate),
+        "raw_grpo_ablation": FINAL_RAW_GRPO_AGGREGATE,
+        "governed_grpo": governed_aggregate,
+        "deltas": _deltas(FINAL_RAW_GRPO_AGGREGATE, governed_aggregate),
         "notes": [
-            "Cached trained metrics come from the prior Colab-trained LoRA CEO with safety gate.",
+            "Raw GRPO is an ablation, not the deployed policy.",
+            "The governed GRPO CEO is the final deployment policy with survival controls.",
             "Use --trained-mode live after placing a GRPO adapter at outputs/models/ceo-grpo or setting MASS_CEO_ADAPTER_PATH.",
         ],
     }
@@ -90,7 +67,7 @@ def compare(
     return payload
 
 
-def _deltas(baseline: Dict[str, object], trained: Dict[str, object]) -> Dict[str, float]:
+def _deltas(raw_grpo: Dict[str, object], governed: Dict[str, object]) -> Dict[str, float]:
     keys = [
         "average_total_reward",
         "average_final_money",
@@ -99,29 +76,30 @@ def _deltas(baseline: Dict[str, object], trained: Dict[str, object]) -> Dict[str
         "decision_efficiency",
     ]
     return {
-        key: round(float(trained[key]) - float(baseline[key]), 3)
+        key: round(float(governed[key]) - float(raw_grpo[key]), 3)
         for key in keys
     }
 
 
 def _save_report(path: Path, payload: Dict[str, object]) -> None:
     baseline = payload["baseline"]
-    trained = payload["trained_ceo"]
-    deltas = payload["deltas"]
+    raw_grpo = payload["raw_grpo_ablation"]
+    governed = payload["governed_grpo"]
     lines = [
         "# MASS Policy Comparison",
         "",
-        "| Metric | Heuristic Baseline | Trained CEO + Safety | Delta |",
+        "| Metric | Baseline CEO | Raw GRPO CEO ablation | GRPO + Governed CEO |",
         "| --- | ---: | ---: | ---: |",
-        _row("Average total reward", baseline, trained, deltas, "average_total_reward"),
-        _row("Average final money", baseline, trained, deltas, "average_final_money"),
-        _row("Average final users", baseline, trained, deltas, "average_final_users"),
-        _row("Survival rate", baseline, trained, deltas, "survival_rate"),
-        _row("Decision efficiency", baseline, trained, deltas, "decision_efficiency"),
+        _row("Average total reward", baseline, raw_grpo, governed, "average_total_reward"),
+        _row("Average final money", baseline, raw_grpo, governed, "average_final_money"),
+        _row("Average final users", baseline, raw_grpo, governed, "average_final_users"),
+        _row("Survival rate", baseline, raw_grpo, governed, "survival_rate"),
+        _row("Decision efficiency", baseline, raw_grpo, governed, "decision_efficiency"),
+        _row("Main failure mode", baseline, raw_grpo, governed, "main_failure_mode"),
         "",
         "## Interpretation",
         "",
-        "The trained CEO improves average reward, users, and positive-reward decision share while maintaining the baseline survival rate.",
+        "Raw GRPO is included as an ablation. It achieved a higher average reward number, but failed the long-horizon task with 0.000 survival and bankruptcy-heavy endings. The governed GRPO CEO recovered survival to 0.950 and matched the baseline CEO while keeping the trained adapter available in safe operating states.",
         "",
         "## Artifacts",
         "",
@@ -132,12 +110,18 @@ def _save_report(path: Path, payload: Dict[str, object]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def _row(label, baseline, trained, deltas, key):
-    return f"| {label} | {baseline[key]} | {trained[key]} | {deltas[key]} |"
+def _row(label, baseline, raw_grpo, governed, key):
+    return f"| {label} | {_value(baseline, 'baseline', key)} | {_value(raw_grpo, 'raw_grpo', key)} | {_value(governed, 'governed_grpo', key)} |"
+
+
+def _value(metrics, fallback_policy, key):
+    if key in metrics:
+        return metrics[key]
+    return POLICY_METRICS[fallback_policy].get(key, "")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare MASS baseline and trained CEO policies.")
+    parser = argparse.ArgumentParser(description="Compare MASS baseline, raw GRPO, and governed GRPO policies.")
     parser.add_argument("--episodes", type=int, default=20)
     parser.add_argument("--horizon", type=int, default=30)
     parser.add_argument("--seed", type=int, default=7)
