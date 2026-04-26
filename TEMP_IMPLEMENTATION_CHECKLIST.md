@@ -224,7 +224,7 @@ These are the non-negotiable automated validation items. If any is missing or br
 - [-] Compare profit / cash survival
 - [-] Compare strategy quality qualitatively
 - [-] Produce a simple graph or table for judges
-  - Existing cached artifacts are present; final Colab GRPO metrics still need to replace placeholders.
+  - Final Colab GRPO metrics and plots have replaced placeholders.
 
 ## 13. Hackathon Readiness
 
@@ -306,7 +306,7 @@ These are the items the validation pass looks for. If any is missing or broken a
 - [x] Phase 5: rewrite README around judge-facing story
 - [x] Phase 5: draft Hugging Face mini-blog
 - [x] Phase 5: add Hugging Face Space deployment checklist
-- [-] Phase 5: complete final Colab training/evaluation artifacts
+- [x] Phase 5: complete final Colab training/evaluation artifacts
 
 ## 17. Files To Touch Next
 
@@ -332,6 +332,6 @@ These are the items the validation pass looks for. If any is missing or broken a
 - Multi-agent proposal flow: implemented
 - Evaluation pipeline: Phase 2 baseline reporting implemented
 - LLM integration: trained CEO path implemented with safety gate
-- Training: TRL GRPO script and Colab workflow exist; final 500-step run/evaluation artifacts are pending
+- Training: TRL GRPO script and two-part Colab workflow exist; final 500-step run/evaluation artifacts are committed
 - OpenEnv packaging: manifest and package scaffold added; needs final CLI/Space validation
 - Demo packaging: Gradio app, README story, Space checklist, and mini-blog draft exist; public Space URL and final links still missing

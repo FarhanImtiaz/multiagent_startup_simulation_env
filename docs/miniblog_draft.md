@@ -158,4 +158,6 @@ The main lesson was that long-horizon RL needs more than a scalar reward and a t
 
 - Code: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 - Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-- Colab notebook: https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb
+- Colab part 1, training run: https://colab.research.google.com/drive/1CrJwaFnwbxXTfkwnaTecEiFlgvx1nIcm?usp=sharing
+- Colab part 2, recovery/evaluation/artifacts: https://colab.research.google.com/drive/1ak2B8CFUIaCk4m-rvYeaAXskTZfDMX3u?usp=sharing
+- Combined repo notebook: ../notebooks/MASS_CEO_Training_Colab.ipynb

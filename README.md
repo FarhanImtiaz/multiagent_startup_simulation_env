@@ -20,7 +20,9 @@ The project is built for the OpenEnv hackathon themes of **multi-agent interacti
 ## Deliverables
 
 - Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-- Colab training notebook: [Open in Colab](https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb)
+- Colab part 1, training run: https://colab.research.google.com/drive/1CrJwaFnwbxXTfkwnaTecEiFlgvx1nIcm?usp=sharing
+- Colab part 2, recovery/evaluation/artifacts: https://colab.research.google.com/drive/1ak2B8CFUIaCk4m-rvYeaAXskTZfDMX3u?usp=sharing
+- Combined repo notebook: [notebooks/MASS_CEO_Training_Colab.ipynb](notebooks/MASS_CEO_Training_Colab.ipynb)
 - Mini-blog / writeup: [docs/miniblog_draft.md](docs/miniblog_draft.md)
 - Code repository: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 

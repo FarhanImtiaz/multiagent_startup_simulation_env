@@ -24,7 +24,9 @@ Use this checklist before submitting. These are the automated validation gates a
 
 - GitHub repo: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 - Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-- Public Colab notebook: https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb
+- Public Colab part 1, training run: https://colab.research.google.com/drive/1CrJwaFnwbxXTfkwnaTecEiFlgvx1nIcm?usp=sharing
+- Public Colab part 2, recovery/evaluation/artifacts: https://colab.research.google.com/drive/1ak2B8CFUIaCk4m-rvYeaAXskTZfDMX3u?usp=sharing
+- Combined repo notebook: `notebooks/MASS_CEO_Training_Colab.ipynb`
 - Mini-blog / writeup: `docs/miniblog_draft.md`
 
 ## Final Artifact Copy
