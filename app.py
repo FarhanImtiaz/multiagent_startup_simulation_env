@@ -10,7 +10,8 @@ with gr.Blocks(title="MASS Startup Simulator") as demo:
 
         A long-horizon world-modeling environment where Tech, Growth, and Finance co-founders
         propose actions under partial observability, and a CEO chooses the final startup strategy.
-        The trained CEO is a Qwen2.5 LoRA policy optimized from simulator rewards with GRPO.
+        The final comparison reports three policies: a deterministic baseline CEO, a raw Qwen2.5
+        GRPO LoRA CEO ablation, and the deployed GRPO + governed CEO with survival controls.
         """
     )
 
@@ -45,13 +46,15 @@ with gr.Blocks(title="MASS Startup Simulator") as demo:
         )
 
     with gr.Tab("Training Result"):
-        gr.Image("docs/assets/loss_curve.png", label="CEO Training Loss")
-        gr.Image("docs/assets/reward_curve.png", label="Average Reward Comparison")
-        gr.Image("docs/assets/reward_comparison.png", label="Before/After Metrics")
-        compare_button = gr.Button("Show Baseline vs Trained CEO Metrics")
+        gr.Image("docs/assets/loss_curve.png", label="GRPO Logged Loss")
+        gr.Image("docs/assets/reward_curve.png", label="GRPO Logged Reward")
+        gr.Image("docs/assets/policy_comparison.png", label="Average Episode Reward")
+        gr.Image("docs/assets/reward_comparison.png", label="Exact Final Eval Metrics")
+        gr.Image("docs/assets/policy_summary.png", label="Policy Safety Summary")
+        compare_button = gr.Button("Show 3-Policy Final Comparison")
         comparison_summary = gr.Textbox(label="Interpretation", lines=4)
         comparison_table = gr.Dataframe(
-            headers=["Metric", "Heuristic Baseline", "Trained CEO + Safety"],
+            headers=["Metric", "Baseline CEO", "Raw GRPO Ablation", "GRPO + Governed CEO"],
             label="Policy Comparison",
         )
         compare_button.click(
