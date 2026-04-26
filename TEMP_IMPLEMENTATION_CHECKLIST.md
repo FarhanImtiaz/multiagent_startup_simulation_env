@@ -9,6 +9,35 @@ Use it as the running build sheet while the project is being implemented.
 - `[-]` Partially done
 - `[ ]` Not started
 
+## Hard Validation Gate
+
+These are the non-negotiable automated validation items. If any is missing or broken at the deadline, the submission may not reach a human judge.
+
+- [ ] Public, cloneable Hugging Face Space at the submitted URL
+  - [ ] Test from a logged-out browser
+  - [ ] Confirm the Space is public, not private
+  - [ ] Confirm the submitted link is not dead or returning 404
+- [-] Valid OpenEnv structure
+  - [x] Proper `Environment` / `MCPEnvironment` style structure
+  - [x] Gym-style `reset`, `step`, and `state`
+  - [x] Parseable `openenv.yaml`
+  - [ ] Run final validation helper before submission
+- [-] Training evidence committed to the repo as image files
+  - [x] Loss curve exists as `.png` / `.jpg`
+  - [x] Reward curve exists as `.png` / `.jpg`
+  - [ ] Replace cached plots with final Colab run plots
+  - [ ] Confirm plots are committed, not only present in Colab or WandB
+- [x] Runnable training script
+  - [x] HF TRL GRPO script exists
+  - [x] Colab notebook exists
+  - [ ] Add final public Colab link to README
+- [-] README links every deliverable
+  - [ ] Hugging Face Space
+  - [ ] Training notebook
+  - [ ] Mini-blog / video / slides
+  - [ ] Key plots embedded inline
+  - [ ] Confirm every deliverable link is reachable from a logged-out browser
+
 ## 1. Project Foundation
 
 - [x] Define the project goal clearly
@@ -189,28 +218,31 @@ Use it as the running build sheet while the project is being implemented.
 ## 12. Before vs After Comparison
 
 - [x] Run untrained or heuristic baseline
-- [x] Run trained policy evaluation
-- [x] Compare reward trends
-- [x] Compare user growth
-- [x] Compare profit / cash survival
+- [-] Run trained policy evaluation
+- [-] Compare reward trends
+- [-] Compare user growth
+- [-] Compare profit / cash survival
 - [-] Compare strategy quality qualitatively
-- [x] Produce a simple graph or table for judges
+- [-] Produce a simple graph or table for judges
+  - Existing cached artifacts are present; final Colab GRPO metrics still need to replace placeholders.
 
 ## 13. Hackathon Readiness
 
 - [x] README reflects the current state
 - [x] Clean `.gitignore`
 - [x] Remove temporary dev clutter from git status
-- [-] Package the project cleanly
-- [-] Add Colab notebook for training/demo
+- [x] Package the project cleanly
+- [x] Add Colab notebook for training/demo
 - [-] Prepare HuggingFace Spaces version
-- [ ] Prepare short explainer flow
+  - Gradio app and deployment checklist exist; public Space URL still pending.
+- [-] Prepare short explainer flow
+  - Mini-blog draft exists; final metrics and links still pending.
 
 ## 14. Automated Round Checks
 
 These are the items the validation pass looks for. If any is missing or broken at the deadline, the submission will not make it to a human judge, regardless of how strong the underlying idea is. Verify each one explicitly before submitting.
 
-- [-] Public, cloneable Hugging Face Space at the submitted URL
+- [ ] Public, cloneable Hugging Face Space at the submitted URL
   - [ ] Test from a logged-out browser
   - [ ] Confirm the Space is not private
   - [ ] Confirm the submitted link is not dead or returning 404
@@ -218,35 +250,36 @@ These are the items the validation pass looks for. If any is missing or broken a
   - [x] Proper `Environment` / `MCPEnvironment` base class
   - [x] Gym-style `reset`, `step`, and `state`
   - [x] Parseable `openenv.yaml`
-- [x] Training evidence committed to the repo as image files
+- [-] Training evidence committed to the repo as image files
   - [x] Loss curve committed as `.png` or `.jpg`
   - [x] Reward curve committed as `.png` or `.jpg`
   - [x] Confirm plots are not only WandB links or Colab cell outputs
+  - [ ] Replace cached plots with final Colab run artifacts
 - [-] Runnable training script
   - [x] Unsloth, Hugging Face TRL, or another framework is acceptable
-  - [ ] Prefer a linked Colab notebook that can be re-executed end to end
+  - [x] Prefer a linked Colab notebook that can be re-executed end to end
   - [x] Python script is acceptable if the full training flow is runnable
 - [-] README links every deliverable
   - [ ] Hugging Face Space
-  - [ ] Training notebook or script
+  - [x] Training notebook or script
   - [ ] Writeup, blog, video, or slides
-  - [x] Key plots embedded inline
+  - [ ] Key plots embedded inline
   - [ ] Confirm every deliverable is reachable from the README
 
 ## 15. Demo and Pitch
 
-- [ ] Show environment state evolving
-- [ ] Show co-founder proposals
-- [ ] Show CEO action selection
-- [ ] Show random bad events
-- [ ] Show delayed effects
+- [x] Show environment state evolving
+- [x] Show co-founder proposals
+- [x] Show CEO action selection
+- [x] Show random bad events
+- [-] Show delayed effects
 - [ ] Show baseline failure cases
-- [x] Show improved behavior after training
-- [ ] Prepare concise explanation of
-  - [ ] problem
-  - [ ] environment
-  - [ ] agents
-  - [ ] reward
+- [-] Show improved behavior after training
+- [-] Prepare concise explanation of
+  - [x] problem
+  - [x] environment
+  - [x] agents
+  - [x] reward
   - [ ] results
 
 ## 16. Immediate Next Build Order
@@ -270,6 +303,10 @@ These are the items the validation pass looks for. If any is missing or broken a
 - [x] Phase 4: add Gradio Space demo
 - [x] Phase 4: add `compare_policies.py`
 - [x] Phase 4: add OpenEnv validation helper
+- [x] Phase 5: rewrite README around judge-facing story
+- [x] Phase 5: draft Hugging Face mini-blog
+- [x] Phase 5: add Hugging Face Space deployment checklist
+- [-] Phase 5: complete final Colab training/evaluation artifacts
 
 ## 17. Files To Touch Next
 
@@ -295,6 +332,6 @@ These are the items the validation pass looks for. If any is missing or broken a
 - Multi-agent proposal flow: implemented
 - Evaluation pipeline: Phase 2 baseline reporting implemented
 - LLM integration: trained CEO path implemented with safety gate
-- Training: TRL SFT script and Colab-tested CEO training complete
+- Training: TRL GRPO script and Colab workflow exist; final 500-step run/evaluation artifacts are pending
 - OpenEnv packaging: manifest and package scaffold added; needs final CLI/Space validation
-- Demo packaging: README and plots started; HF Space, Colab link, and video/blog still missing
+- Demo packaging: Gradio app, README story, Space checklist, and mini-blog draft exist; public Space URL and final links still missing

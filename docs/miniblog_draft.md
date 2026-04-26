@@ -1,29 +1,83 @@
-# Training A CEO Agent In A Multi-Agent Startup Simulator
+# MASS: Teaching An LLM CEO To Run A Startup With GRPO
 
-## Summary
+> Mini-blog draft for the OpenEnv Hackathon. Replace the TODO links and final metrics after the Colab run completes.
 
-MASS is a compact world-modeling environment for startup decision-making. A simulated company is run over multiple days by four roles: Tech, Growth, Finance, and CEO. The three co-founder agents propose actions from partial observations, and the CEO chooses the final action. The goal is to survive while improving users, product quality, and long-term reward under noisy market conditions.
+## TL;DR
 
-For this project, I built the simulator, exported CEO decision trajectories, and trained a Qwen LoRA CEO policy with Hugging Face TRL GRPO. The trained CEO is evaluated against a heuristic CEO baseline with the same co-founder proposals and a safety gate.
+MASS is a multi-agent startup simulator built as an OpenEnv-compatible environment. Three specialist co-founders, Tech, Growth, and Finance, propose actions from noisy partial observations. A CEO agent chooses the final action and receives reward from the simulated company outcome.
 
-## Why This Environment
+The goal is to train an LLM CEO policy that gets better at long-horizon strategic tradeoffs: when to invest in product, when to market, when to hire, when to conserve cash, and when to pivot.
 
-Startup strategy is a useful toy domain for long-horizon agency because decisions are delayed, noisy, and cross-functional. Hiring improves execution but raises burn. Marketing can grow users but may waste cash if product quality is weak. Product investment helps retention and future growth but creates delayed payoff. A good CEO policy has to balance these tradeoffs instead of greedily selecting one metric.
+For training, I use Hugging Face TRL GRPO with a Qwen LoRA CEO policy. The trained CEO is compared against a hand-written heuristic CEO baseline in the same simulator.
 
-MASS includes:
+## Why A Startup Simulator?
 
-- hidden market state
-- partial and noisy observations
-- stochastic external events
-- delayed action effects
-- role-specific co-founder proposals
-- shaped rewards for survival, growth, quality, and financial discipline
+Many LLM benchmarks are single-turn: answer a question, classify text, write a function, or format an output. Real agentic work is messier. Decisions have delayed consequences, feedback is noisy, and different stakeholders want different things.
 
-## Training Setup
+A startup is a compact way to model that:
+
+- hiring increases execution capacity but raises burn
+- marketing can grow users but may fail if the product is weak
+- product investment improves retention but pays off later
+- pivots can help in a bad market but introduce risk
+- doing nothing preserves cash but can lose momentum
+
+The CEO does not see the full world state. Market demand, competition, and economic conditions are partially hidden. This pushes the task toward world modeling rather than simple action lookup.
+
+## The Environment
+
+Each episode simulates a startup over multiple days.
+
+At every step:
+
+1. The environment produces a noisy observation.
+2. Tech, Growth, and Finance propose actions with short rationales.
+3. The CEO chooses one final action.
+4. The simulator applies the action, delayed effects, recurring business dynamics, and possible random events.
+5. The environment returns a reward and the next observation.
+
+The CEO can choose:
+
+- `hire_employee`
+- `fire_employee`
+- `invest_in_product`
+- `run_marketing_campaign`
+- `do_nothing`
+- `pivot_strategy`
+
+The environment tracks money, users, product quality, team size, burn rate, recent actions, delayed effects, and hidden market variables. Episodes can end by reaching the horizon, failing financially, or hitting terminal business conditions.
+
+## Why This Fits OpenEnv
+
+MASS follows the OpenEnv-style loop:
+
+- `reset()` starts a new company episode
+- `step(action)` applies one CEO decision
+- `state` exposes the current environment state
+
+This makes the simulator usable as more than a demo. It is a training environment with a clear action space, observations, rewards, and repeatable seeded evaluation.
+
+## Reward Design
+
+The reward is shaped around durable company performance, not just one metric.
+
+It includes signals for:
+
+- survival
+- user growth
+- product quality
+- cash discipline
+- burn rate
+- decision efficiency
+- penalties for bankruptcy or unstable behavior
+
+The main risk in this environment is reward hacking through overly aggressive growth. A CEO can make user numbers look good temporarily by overspending, but that should not count as success if the company collapses. To reduce this, evaluation includes survival and financial constraints, and the trained CEO path uses a safety gate.
+
+## Training With GRPO
 
 The training pipeline has three stages.
 
-First, the simulator collects trajectories from the heuristic multi-agent system:
+First, collect trajectories from the simulator:
 
 ```bash
 python train.py \
@@ -35,7 +89,7 @@ python train.py \
   --grpo-output outputs/ceo_grpo.jsonl
 ```
 
-Second, the CEO policy is optimized with TRL GRPO:
+Second, train the CEO policy with TRL GRPO:
 
 ```bash
 python train_ceo_grpo.py \
@@ -50,7 +104,7 @@ python train_ceo_grpo.py \
   --max-steps 500
 ```
 
-Third, the trained CEO is evaluated in the same simulator:
+Third, evaluate against the baseline:
 
 ```bash
 python evaluation.py --episodes 20 --horizon 30 --save-dir outputs/eval_baseline
@@ -58,9 +112,11 @@ python evaluation.py --episodes 20 --horizon 30 --agent-mode trained_ceo --save-
 python compare_policies.py --output-dir outputs/comparison
 ```
 
-## Results
+## What Improved?
 
-Replace this table with the final Colab numbers:
+Final GRPO training is still running. This section will be updated with the completed Colab evaluation.
+
+Target comparison:
 
 | Metric | Heuristic Baseline | Trained CEO + Safety Gate |
 | --- | ---: | ---: |
@@ -69,26 +125,29 @@ Replace this table with the final Colab numbers:
 | Survival rate | TODO | TODO |
 | Decision efficiency | TODO | TODO |
 
-The main result to look for is not just raw reward improvement. The trained CEO should preserve survival while improving growth, reward, or decision efficiency. If the model grows faster but bankrupts the company more often, the safety gate and reward shaping need adjustment.
+The ideal result is not just a higher reward number. I want the trained CEO to improve reward, growth, or efficiency while preserving survival. A model that grows quickly but bankrupts the company is not a good CEO.
 
 ## Demo
 
-The Gradio demo has two main views:
+The Hugging Face Space uses a Gradio app with three tabs:
 
-- Live Episode: run a heuristic multi-agent startup episode and inspect the day-by-day decisions.
-- Training Result: inspect the training curve and baseline vs trained CEO comparison.
+- **Live Episode:** run a seeded startup episode and inspect the step-by-step trace.
+- **Training Result:** view training plots and baseline vs trained CEO metrics.
+- **OpenEnv:** inspect the environment interface and action space.
 
-The Hugging Face Space is intended to make the simulator inspectable without running training locally.
+This makes the project easier to judge without rerunning training locally.
 
-## Lessons Learned
+## What I Learned
 
-GRPO is a good fit for this environment because the CEO action can be scored by simulator outcomes instead of requiring a fixed supervised label. The hard part is reward design: a naive reward can over-prioritize growth, while a conservative reward can make the policy indistinguishable from the heuristic baseline.
+The hardest part was not writing the trainer. It was designing an environment where the reward actually describes the behavior I care about.
 
-The most useful engineering choice was keeping the simulator deterministic under seeds. That made before/after comparisons, debugging, and Colab training failures much easier to reason about.
+A good startup CEO policy should not blindly chase one metric. It should reason under uncertainty, choose between conflicting co-founder proposals, and preserve enough runway to benefit from long-term decisions. That is why this environment combines multi-agent proposals, hidden state, delayed effects, stochastic events, and shaped reward.
+
+GRPO is useful here because the simulator can score outcomes directly. I do not need a perfect human-written label for every CEO decision. I can let the policy sample decisions, run them through the environment, and optimize toward higher-reward behavior.
 
 ## Links
 
 - Code: TODO
 - Hugging Face Space: TODO
 - Colab notebook: TODO
-- Final report/demo video: TODO
+- Final mini-blog / video / slides: TODO

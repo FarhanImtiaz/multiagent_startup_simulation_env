@@ -1,141 +1,112 @@
-# Multi-Agent Startup Simulator (MASS)
+# MASS: Multi-Agent Startup Simulator
 
-`MASS` is a compact startup simulation environment where specialized agents make business decisions under uncertainty over multiple timesteps.
+MASS is an OpenEnv-compatible reinforcement-learning environment where an LLM CEO learns to run a startup over a long horizon. Tech, Growth, and Finance co-founders each propose actions from noisy partial observations, and the CEO chooses the final company strategy.
 
-The current project includes:
+The project is built for the OpenEnv hackathon themes of **multi-agent interaction**, **long-horizon planning**, and **world modeling**. The agent has to balance product quality, user growth, cash runway, employee count, burn rate, market demand, competition, and stochastic external events.
 
-- a shared startup environment with hidden market state
-- partial observability and noisy signals
-- delayed action consequences
-- stochastic marketing outcomes and random external events
-- heuristic Tech, Growth, Finance, and CEO agents
-- prompt scaffolding and a trained-CEO inference path for LLM-driven control
-- single-episode simulation, multi-episode evaluation, and trajectory collection scripts
-- an OpenEnv-style package wrapper and manifest
-- Hugging Face TRL GRPO training script for the CEO policy
+## Deliverables
 
-## Project Goal
+Replace these links before final submission:
 
-The repo is a world-modeling environment for:
+- Hugging Face Space: TODO
+- Colab training notebook: TODO
+- Mini-blog / writeup: TODO
+- Code repository: TODO
 
-- multi-agent coordination
-- long-horizon decision-making
-- business-style tradeoffs between growth, product quality, and financial survival
+Supporting docs:
 
-The codebase is best understood as:
+- [Hugging Face Space deployment checklist](docs/huggingface_space_deployment.md)
+- [Mini-blog draft](docs/miniblog_draft.md)
+- [Training steps](TRAINING_STEPS.md)
 
-- a working simulation prototype
-- a heuristic baseline
-- an OpenEnv-compatible environment package
-- a trajectory collection and CEO fine-tuning pipeline
-- a trained CEO evaluation path for before/after comparison
+## Why This Environment
 
-## Theme Alignment
+Many LLM demos optimize for one-shot text quality. MASS instead asks whether an LLM can act inside a dynamic system, receive feedback, and improve a policy over repeated decisions.
 
-- **Multi-Agent Interactions:** Tech, Growth, and Finance co-founders propose competing actions; the CEO selects one final decision.
-- **Long-Horizon Planning:** Each episode spans many timesteps with delayed effects, recurring costs, and consequences from earlier decisions.
-- **World Modeling:** Agents operate with noisy observations while hidden market demand, competition, economic conditions, and random events affect outcomes.
+Startup strategy is useful for this because decisions are coupled and delayed:
 
-## How The Simulation Works
+- hiring improves execution but increases burn
+- marketing can grow users but wastes cash if product quality is weak
+- product investment improves future retention but may not pay off immediately
+- pivots can help under bad market conditions but carry risk
+- survival requires balancing growth against runway
 
-At each step:
+This makes the environment more interesting than a single-turn classification or formatting task. The CEO must reason over competing proposals, noisy observations, and delayed consequences.
 
-1. The environment exposes a noisy observation of the startup state.
-2. Three co-founders propose actions:
+## Environment Design
+
+At each timestep:
+
+1. The environment exposes a noisy observation of the startup.
+2. Three co-founder agents propose actions:
    - Tech Co-founder
    - Growth Co-founder
    - Finance Co-founder
 3. The CEO chooses one final action.
-4. The environment applies:
-   - delayed effects from previous actions
-   - the chosen action
-   - recurring startup dynamics
-   - a possible random external event
-5. The environment computes reward and returns the next observation.
+4. The simulator applies delayed effects, the chosen action, recurring business dynamics, and a possible external event.
+5. The environment returns a reward and the next observation.
 
-The startup can succeed or fail based on product quality, user growth, cash runway, burn, market conditions, and random shocks.
+Episodes terminate when the startup reaches the horizon, runs out of money, or hits a success/failure condition.
 
-## Main Files
+## What The Agent Observes
 
-- `environment.py`: core startup world, hidden state, delayed effects, events, rewards, termination.
-- `agents.py`: heuristic co-founder policies and CEO decision logic.
-- `simulate.py`: single-episode runner with CLI flags and optional saved summary.
-- `evaluation.py`: multi-episode runner with aggregate metrics and export helpers.
-- `llm_agents.py`: prompt builders, safe action parsing, and fallback-to-heuristic LLM scaffolding.
-- `mass_startup_env/`: OpenEnv-style typed action, observation, state, environment, and server app.
-- `openenv.yaml`: OpenEnv manifest.
-- `openenv_wrapper.py`: minimal reset/step wrapper for direct training-style integrations.
-- `train.py`: trajectory collection and SFT/preference/GRPO dataset export.
-- `train_ceo_grpo.py`: Hugging Face TRL GRPO script for the CEO policy.
-- `compare_policies.py`: one-command baseline vs trained CEO comparison.
-- `app.py`: Gradio Hugging Face Space demo.
-- `docs/huggingface_space_deployment.md`: Space publishing checklist.
-- `docs/miniblog_draft.md`: short project writeup with final-result placeholders.
-- `Project_Overview.md`: original hackathon/product framing.
-- `TEMP_IMPLEMENTATION_CHECKLIST.md`: temporary progress tracker.
-- `TEMP_CODEBASE_GUIDE.md`: temporary deep codebase walkthrough for development and onboarding.
+The CEO sees a partial, noisy view of the company:
 
-## Quick Start
+- cash / runway signal
+- user count
+- product quality
+- employee count
+- burn rate
+- market and competition signals
+- recent events
+- co-founder proposals and rationales
 
-Run a single episode:
+Hidden state such as true market demand and some event dynamics is not directly exposed.
 
-```bash
-python3 simulate.py
-```
+## Action Space
 
-Run a short verbose simulation with hidden state debugging:
+The CEO selects one of:
 
-```bash
-python3 simulate.py --horizon 10 --show-hidden-state
-```
+- `hire_employee`
+- `fire_employee`
+- `invest_in_product`
+- `run_marketing_campaign`
+- `do_nothing`
+- `pivot_strategy`
 
-Use the full old-style trace when you want every reward component and full reasoning:
+These actions affect company state immediately and through delayed effects.
 
-```bash
-python3 simulate.py --horizon 10 --log-detail full
-```
+## Reward Design
 
-Save a single episode summary:
+The reward function is shaped to encourage durable startup performance rather than one-dimensional growth. It accounts for:
 
-```bash
-python3 simulate.py --quiet --save-summary outputs/single_episode.json
-```
+- survival
+- user growth
+- product quality
+- financial discipline
+- cash runway
+- action efficiency
+- penalties for bankruptcy or poor strategic tradeoffs
 
-Run a baseline evaluation with report artifacts:
+The key design goal is to prevent trivial policies such as spending all cash on growth or doing nothing forever. The trained CEO is also evaluated with a safety gate so a high-growth policy cannot collapse into repeated bankruptcy behavior.
 
-```bash
-python3 evaluation.py --episodes 20 --horizon 30 --save-dir outputs/eval
-```
+## Training Pipeline
 
-Run trained CEO evaluation after placing a LoRA adapter at `outputs/models/ceo-grpo`:
+The project uses Hugging Face TRL GRPO for the CEO policy.
 
-```bash
-python3 evaluation.py --episodes 20 --horizon 30 --agent-mode trained_ceo --save-dir outputs/eval_trained
-```
+Pipeline:
 
-Generate the final before/after comparison artifacts:
+1. Run the simulator to collect CEO decision trajectories.
+2. Export GRPO-ready examples.
+3. Train a Qwen LoRA CEO policy with TRL GRPO.
+4. Evaluate the trained CEO against the heuristic baseline.
+5. Commit final loss/reward plots and comparison metrics.
 
-```bash
-python3 compare_policies.py --output-dir outputs/comparison
-```
-
-Run the local Gradio demo:
-
-```bash
-python3 app.py
-```
-
-Collect trajectories for later training work:
-
-```bash
-python3 train.py --episodes 20 --horizon 30 --output outputs/trajectories.json
-```
-
-Export training-ready CEO decision datasets:
+Generate training data:
 
 ```bash
 python3 train.py \
-  --episodes 20 \
+  --episodes 100 \
   --horizon 30 \
   --output outputs/trajectories.json \
   --sft-output outputs/ceo_sft.jsonl \
@@ -143,112 +114,79 @@ python3 train.py \
   --grpo-output outputs/ceo_grpo.jsonl
 ```
 
-Train the CEO with Hugging Face TRL GRPO:
+Train with GRPO:
 
 ```bash
 python3 train_ceo_grpo.py \
   --dataset outputs/ceo_grpo.jsonl \
   --model Qwen/Qwen3-0.6B \
   --output-dir outputs/models/ceo-grpo \
-  --epochs 2 \
+  --epochs 3 \
   --batch-size 4 \
   --num-generations 4 \
-  --gradient-accumulation-steps 8
+  --gradient-accumulation-steps 8 \
+  --save-steps 50 \
+  --max-steps 500
 ```
 
-## Agent Modes
-
-Three agent modes are currently supported in the simulation scripts:
-
-- `heuristic`: uses the hand-written policies in `agents.py`
-- `prompt_scaffold`: uses prompt-based wrappers from `llm_agents.py`, but still falls back safely because no real model backend is wired in by default
-- `trained_ceo`: keeps heuristic co-founders and uses a trained Qwen LoRA CEO adapter with a safety gate
-
-Example:
+Evaluate baseline and trained CEO:
 
 ```bash
-python3 simulate.py --agent-mode prompt_scaffold
+python3 evaluation.py --episodes 20 --horizon 30 --save-dir outputs/eval_baseline
+python3 evaluation.py --episodes 20 --horizon 30 --agent-mode trained_ceo --save-dir outputs/eval_trained_safety
+python3 compare_policies.py --output-dir outputs/comparison
 ```
 
-```bash
-python3 simulate.py --agent-mode trained_ceo
-```
+## What Improved After Training
 
-## Results
+Final GRPO training is in progress. This section will be updated with the completed Colab run.
 
-Final comparison over 20 episodes, horizon 30:
+Planned comparison:
 
 | Metric | Heuristic Baseline | Trained CEO + Safety Gate |
 | --- | ---: | ---: |
-| Average total reward | -13.52 | -12.212 |
-| Average final users | 116.9 | 141.75 |
-| Survival rate | 0.95 | 0.95 |
-| Decision efficiency | 0.16 | 0.207 |
+| Average total reward | TODO | TODO |
+| Average final users | TODO | TODO |
+| Survival rate | TODO | TODO |
+| Decision efficiency | TODO | TODO |
 
-![CEO training loss](docs/assets/loss_curve.png)
+Plots to include after the final run:
 
-![Average episode reward comparison](docs/assets/reward_curve.png)
+- training loss curve
+- baseline vs trained reward curve
+- before/after metric comparison
+- policy comparison summary
 
-![Baseline vs trained CEO metrics](docs/assets/reward_comparison.png)
+## Hugging Face Space Demo
 
-![Policy comparison](docs/assets/policy_comparison.png)
+The Gradio demo is implemented in `app.py`.
 
-## Outputs
+It includes:
 
-Typical generated outputs include:
+- **Live Episode:** run a multi-agent startup episode and inspect the day-by-day trace.
+- **Training Result:** view training plots and baseline vs trained CEO metrics.
+- **OpenEnv:** inspect the environment interface and action space.
 
-- `outputs/single_episode.json`
-- `outputs/trajectories.json`
-- `outputs/ceo_sft.jsonl`
-- `outputs/ceo_preferences.jsonl`
-- `outputs/ceo_grpo.jsonl`
-- `outputs/trajectories_prompt.json`
-- `outputs/eval/evaluation_summary.json`
-- `outputs/eval/episode_metrics.csv`
-- `outputs/eval/step_metrics.csv`
-- `outputs/eval/action_distribution.csv`
-- `outputs/eval/baseline_report.md`
-- `outputs/eval/reward_curve.svg`
-- `outputs/eval/outcome_curve.svg`
-- `outputs/eval/action_distribution.svg`
-- `docs/assets/loss_curve.png`
-- `docs/assets/reward_curve.png`
-- `docs/assets/reward_comparison.png`
-- `docs/assets/policy_comparison.png`
-- `docs/comparison_summary.json`
-- `docs/comparison_report.md`
+Run locally:
 
-These are useful for inspecting step-by-step behavior and bootstrapping future training or evaluation work.
+```bash
+pip install -r requirements.txt
+python3 app.py
+```
 
-## Current State
+Deployment notes are in [docs/huggingface_space_deployment.md](docs/huggingface_space_deployment.md).
 
-What is implemented:
+## OpenEnv Compatibility
 
-- startup environment with public and hidden state
-- delayed effects queue
-- random event system
-- shaped company reward
-- role-based heuristic decision flow
-- single-episode simulation
-- trajectory collection
-- SFT, preference, and GRPO dataset export for CEO decision training
-- TRL GRPO script for CEO policy optimization
-- trained CEO model loading through `llm_agents.py`
-- OpenEnv-style `reset`, `step`, and `state` wrapper package
-- submission-ready PNG training/evaluation artifacts
+The OpenEnv manifest is [openenv.yaml](openenv.yaml). The package wrapper lives in `mass_startup_env/`.
 
-What is not implemented yet:
+The environment exposes the standard loop:
 
-- hosted Hugging Face Space URL
-- public Colab notebook URL
-- final video/blog URL
-- polished interactive demo UI
+- `reset()`
+- `step(action)`
+- `state`
 
-## OpenEnv
-
-The environment manifest is [openenv.yaml](openenv.yaml). The OpenEnv-style package is in `mass_startup_env/`.
-
-Direct local smoke test:
+Local smoke test:
 
 ```python
 from mass_startup_env import StartupAction, StartupOpenEnv
@@ -268,42 +206,77 @@ python3 scripts/validate_openenv_package.py
 Server entrypoint:
 
 ```bash
-python -m mass_startup_env.server.app
+python3 -m mass_startup_env.server.app
 ```
 
-## Submission Links
+## Quick Start
 
-Replace these placeholders before submitting:
+Install:
 
-- Hugging Face Space: TODO
-- Colab notebook: TODO
-- Code repository: TODO
-- Video or blog: TODO
+```bash
+pip install -r requirements.txt
+```
 
-Supporting submission docs:
+Run one episode:
 
-- [Hugging Face Space deployment checklist](docs/huggingface_space_deployment.md)
-- [Mini-blog draft](docs/miniblog_draft.md)
+```bash
+python3 simulate.py
+```
 
-## Known Limitation
+Run a short debug episode:
 
-The Phase 2 evaluation flow now exports flat CSVs, a Markdown baseline report, and lightweight SVG plots without requiring plotting dependencies.
+```bash
+python3 simulate.py --horizon 10 --show-hidden-state
+```
 
-## If You Want To Understand The Codebase
+Run baseline evaluation:
 
-Start with:
+```bash
+python3 evaluation.py --episodes 20 --horizon 30 --save-dir outputs/eval
+```
 
-1. `README.md`
-2. `simulate.py`
-3. `agents.py`
-4. `environment.py`
+Run the Space app locally:
 
-Then use `TEMP_CODEBASE_GUIDE.md` for the detailed file-by-file and function-by-function walkthrough.
+```bash
+python3 app.py
+```
 
-## Next Good Improvements
+## Main Files
 
-- add tests for environment transitions and reward behavior
-- make action costs and reward weights configurable
-- improve disagreement quality between heuristic agents
-- publish the Hugging Face Space
-- add a short demo video or Hugging Face blog post
+- `environment.py`: core startup simulator, hidden state, delayed effects, events, rewards, and termination.
+- `agents.py`: heuristic Tech, Growth, Finance, and CEO policies.
+- `simulate.py`: single-episode runner.
+- `evaluation.py`: multi-episode evaluation and report export.
+- `train.py`: trajectory collection and dataset export.
+- `train_ceo_grpo.py`: Hugging Face TRL GRPO training script.
+- `llm_agents.py`: trained CEO loading, prompt scaffolding, and safety fallback logic.
+- `compare_policies.py`: baseline vs trained CEO comparison artifacts.
+- `mass_startup_env/`: OpenEnv-style package wrapper and server.
+- `app.py`: Gradio Hugging Face Space demo.
+- `notebooks/MASS_CEO_Training_Colab.ipynb`: Colab training workflow.
+
+## Results Artifacts
+
+Final artifacts should be committed under:
+
+- `docs/assets/loss_curve.png`
+- `docs/assets/reward_curve.png`
+- `docs/assets/reward_comparison.png`
+- `docs/assets/policy_comparison.png`
+- `docs/comparison_summary.json`
+- `docs/comparison_report.md`
+
+Generated training/evaluation outputs are written to `outputs/` and are intentionally ignored by Git.
+
+## Known Limitations
+
+- The simulator is compact and designed for hackathon-scale training, not a full business benchmark.
+- The trained model is a LoRA CEO policy and should be evaluated through the provided safety gate.
+- Final metrics are pending the current GRPO Colab run.
+
+## Next Improvements
+
+- Add more reward components and anti-reward-hacking checks.
+- Add curriculum variants with easier and harder market conditions.
+- Compare GRPO against prompt-only and SFT baselines.
+- Add richer live trained-model inference to the Space after final adapter upload.
