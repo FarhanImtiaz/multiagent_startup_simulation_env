@@ -165,7 +165,7 @@ class PromptedCEO:
         if action is None:
             return fallback
         original_action = action
-        action = self._apply_safety_gate(action, fallback, observation)
+        action = self._apply_safety_gate(action, fallback, observation, proposals)
         if (
             (observation.get("crisis_level") == "crisis" or observation.get("runway_hint", 999) < 2)
             and action in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS
@@ -189,14 +189,46 @@ class PromptedCEO:
         action: str,
         fallback: ActionProposal,
         observation: Dict[str, object],
+        proposals: Dict[str, ActionProposal],
     ) -> str:
         runway = float(observation.get("runway_hint", 999))
         money = float(observation.get("money", 0.0))
         burn_rate = float(observation.get("burn_rate", 1.0))
         recent_actions = list(observation.get("recent_actions", []))
+        crisis_level = str(observation.get("crisis_level", "normal"))
+        consecutive_streak = int(observation.get("consecutive_action_streak", 0))
         low_runway = runway < 4
         cash_stress = money < burn_rate * 4
         repeated_growth_spend = recent_actions[-2:].count("run_marketing_campaign") >= 2
+        finance_action = proposals.get("Finance Co-founder", fallback).action
+
+        if crisis_level == "crisis" or runway < 2:
+            if fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
+                return fallback.action
+            if finance_action == "fire_employee" and int(observation.get("team_size", 1)) > 1:
+                return "fire_employee"
+            if action == "do_nothing" and consecutive_streak >= 3:
+                return fallback.action
+
+        if (
+            runway < 3
+            and finance_action == "fire_employee"
+            and int(observation.get("team_size", 1)) > 1
+            and recent_actions[-2:].count("fire_employee") == 0
+            and action in {
+            "do_nothing",
+            "invest_in_product",
+            "run_marketing_campaign",
+            "hire_employee",
+            }
+        ):
+            return "fire_employee"
+
+        if consecutive_streak >= 3 and action == observation.get("last_action"):
+            if finance_action == "fire_employee" and runway < 4 and int(observation.get("team_size", 1)) > 1:
+                return "fire_employee"
+            if fallback.action != action:
+                return fallback.action
 
         if action in {"run_marketing_campaign", "hire_employee"} and (
             low_runway or cash_stress or repeated_growth_spend
@@ -265,7 +297,7 @@ def build_prompted_agents(
 
 def build_trained_ceo_agents(
     adapter_path: str = "outputs/models/ceo-grpo",
-    base_model: str = "Qwen/Qwen3-0.6B",
+    base_model: str = "Qwen/Qwen2.5-0.5B-Instruct",
 ) -> Tuple[TechCoFounder, GrowthCoFounder, FinanceCoFounder, PromptedCEO]:
     generator = HuggingFaceActionGenerator(base_model=base_model, adapter_path=adapter_path)
     return (

@@ -19,16 +19,12 @@ venv/bin/python train.py \
   --episodes 50 \
   --horizon 30 \
   --output outputs/trajectories.json \
-  --sft-output outputs/ceo_sft.jsonl \
-  --preference-output outputs/ceo_preferences.jsonl \
   --grpo-output outputs/ceo_grpo.jsonl
 ```
 
 This creates:
 
 - `outputs/trajectories.json`: full simulator rollouts
-- `outputs/ceo_sft.jsonl`: supervised CEO decision examples
-- `outputs/ceo_preferences.jsonl`: chosen/rejected action pairs for later DPO-style tuning
 - `outputs/ceo_grpo.jsonl`: prompt-only CEO records with simulator context for GRPO rewards
 
 ## 3. Install Training Dependencies
@@ -46,7 +42,7 @@ Small GPU-friendly first run:
 ```bash
 python train_ceo_grpo.py \
   --dataset outputs/ceo_grpo.jsonl \
-  --model Qwen/Qwen3-0.6B \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
   --output-dir outputs/models/ceo-grpo \
   --epochs 1 \
   --batch-size 4 \

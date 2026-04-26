@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
         description="Train the MASS CEO decision model with TRL GRPO."
     )
     parser.add_argument("--dataset", default="outputs/ceo_grpo.jsonl")
-    parser.add_argument("--model", default="Qwen/Qwen3-0.6B")
+    parser.add_argument("--model", default="Qwen/Qwen2.5-0.5B-Instruct")
     parser.add_argument("--output-dir", default="outputs/models/ceo-grpo")
     parser.add_argument("--epochs", type=float, default=1.0)
     parser.add_argument("--batch-size", type=int, default=4)

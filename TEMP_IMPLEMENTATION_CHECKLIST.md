@@ -211,8 +211,7 @@ These are the non-negotiable automated validation items. If any is missing or br
 - [x] Optimize policy using rewards
 - [-] Support repeated training cycles
 - [x] Save trajectory outputs for future training
-- [x] Export SFT-style JSONL records
-- [x] Export preference-style JSONL records
+- [x] Export GRPO-style JSONL records
 - [x] Document how to reproduce training
 
 ## 12. Before vs After Comparison
@@ -295,7 +294,7 @@ These are the items the validation pass looks for. If any is missing or broken a
 - [x] Phase 2: make simulation logs easier to read
 - [x] Phase 2: document evaluation artifacts in README
 - [x] Slim `agents.py` back to the maintainable heuristic baseline
-- [x] Add training-ready SFT and preference dataset exports
+- [x] Add training-ready GRPO dataset export
 - [x] Phase 3: add OpenEnv-style package and `openenv.yaml`
 - [x] Phase 3: add trained CEO mode, safety gate, and before/after metrics
 - [x] Phase 3: commit PNG loss and reward artifacts

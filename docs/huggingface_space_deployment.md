@@ -19,6 +19,8 @@ This project already includes the files needed for a Gradio Space:
    - Visibility: Public
 4. Push this repository to the Space repo, or connect it from GitHub.
 
+If using a separate Space repository, copy `README_SPACE.md` to `README.md` inside the Space repo. Hugging Face reads Space metadata from the Space repo's `README.md`.
+
 ## Space README Front Matter
 
 If Hugging Face asks for Space metadata, use this at the top of the Space `README.md`:
@@ -72,3 +74,5 @@ Then commit and push. The Space will show the updated training results.
 - Training Result tab shows all plots.
 - Comparison table has final trained metrics.
 - README links include the Space URL.
+
+Use [final_submission_checklist.md](final_submission_checklist.md) for the full automated validation checklist.

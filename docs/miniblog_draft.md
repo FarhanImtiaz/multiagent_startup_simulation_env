@@ -8,7 +8,7 @@ MASS is a multi-agent startup simulator built as an OpenEnv-compatible environme
 
 The goal is to train an LLM CEO policy that gets better at long-horizon strategic tradeoffs: when to invest in product, when to market, when to hire, when to conserve cash, and when to pivot.
 
-For training, I use Hugging Face TRL GRPO with a Qwen LoRA CEO policy. The trained CEO is compared against a hand-written heuristic CEO baseline in the same simulator.
+For training, I use Hugging Face TRL GRPO with a Qwen2.5 LoRA CEO policy. The trained CEO is compared against a hand-written heuristic CEO baseline in the same simulator.
 
 ## Why A Startup Simulator?
 
@@ -84,8 +84,6 @@ python train.py \
   --episodes 100 \
   --horizon 30 \
   --output outputs/trajectories.json \
-  --sft-output outputs/ceo_sft.jsonl \
-  --preference-output outputs/ceo_preferences.jsonl \
   --grpo-output outputs/ceo_grpo.jsonl
 ```
 
@@ -94,7 +92,7 @@ Second, train the CEO policy with TRL GRPO:
 ```bash
 python train_ceo_grpo.py \
   --dataset outputs/ceo_grpo.jsonl \
-  --model Qwen/Qwen3-0.6B \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
   --output-dir outputs/models/ceo-grpo \
   --epochs 3 \
   --batch-size 4 \

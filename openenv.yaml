@@ -34,4 +34,4 @@ training:
   framework: Hugging Face TRL
   algorithm: GRPO
   target_agent: CEO
-  base_model: Qwen/Qwen3-0.6B
+  base_model: Qwen/Qwen2.5-0.5B-Instruct

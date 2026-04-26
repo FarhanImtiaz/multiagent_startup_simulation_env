@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
         description="Fine-tune a CEO decision model from MASS SFT JSONL records."
     )
     parser.add_argument("--dataset", default="outputs/ceo_sft.jsonl")
-    parser.add_argument("--model", default="Qwen/Qwen3-0.6B")
+    parser.add_argument("--model", default="Qwen/Qwen2.5-0.5B-Instruct")
     parser.add_argument("--output-dir", default="outputs/models/ceo-sft")
     parser.add_argument("--epochs", type=float, default=1.0)
     parser.add_argument("--batch-size", type=int, default=1)
@@ -75,4 +75,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

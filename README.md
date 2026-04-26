@@ -1,3 +1,15 @@
+---
+title: MASS Startup Simulator
+emoji: 🚀
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: 4.44.1
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # MASS: Multi-Agent Startup Simulator
 
 MASS is an OpenEnv-compatible reinforcement-learning environment where an LLM CEO learns to run a startup over a long horizon. Tech, Growth, and Finance co-founders each propose actions from noisy partial observations, and the CEO chooses the final company strategy.
@@ -11,11 +23,12 @@ Replace these links before final submission:
 - Hugging Face Space: TODO
 - Colab training notebook: TODO
 - Mini-blog / writeup: TODO
-- Code repository: TODO
+- Code repository: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 
 Supporting docs:
 
 - [Hugging Face Space deployment checklist](docs/huggingface_space_deployment.md)
+- [Final submission checklist](docs/final_submission_checklist.md)
 - [Mini-blog draft](docs/miniblog_draft.md)
 - [Training steps](TRAINING_STEPS.md)
 
@@ -98,7 +111,7 @@ Pipeline:
 
 1. Run the simulator to collect CEO decision trajectories.
 2. Export GRPO-ready examples.
-3. Train a Qwen LoRA CEO policy with TRL GRPO.
+3. Train a Qwen2.5 LoRA CEO policy with TRL GRPO.
 4. Evaluate the trained CEO against the heuristic baseline.
 5. Commit final loss/reward plots and comparison metrics.
 
@@ -109,8 +122,6 @@ python3 train.py \
   --episodes 100 \
   --horizon 30 \
   --output outputs/trajectories.json \
-  --sft-output outputs/ceo_sft.jsonl \
-  --preference-output outputs/ceo_preferences.jsonl \
   --grpo-output outputs/ceo_grpo.jsonl
 ```
 
@@ -119,7 +130,7 @@ Train with GRPO:
 ```bash
 python3 train_ceo_grpo.py \
   --dataset outputs/ceo_grpo.jsonl \
-  --model Qwen/Qwen3-0.6B \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
   --output-dir outputs/models/ceo-grpo \
   --epochs 3 \
   --batch-size 4 \
@@ -278,5 +289,5 @@ Generated training/evaluation outputs are written to `outputs/` and are intentio
 
 - Add more reward components and anti-reward-hacking checks.
 - Add curriculum variants with easier and harder market conditions.
-- Compare GRPO against prompt-only and SFT baselines.
+- Compare GRPO against prompt-only and heuristic baselines.
 - Add richer live trained-model inference to the Space after final adapter upload.

@@ -10,7 +10,7 @@ with gr.Blocks(title="MASS Startup Simulator") as demo:
 
         A long-horizon world-modeling environment where Tech, Growth, and Finance co-founders
         propose actions under partial observability, and a CEO chooses the final startup strategy.
-        The trained CEO is a Qwen LoRA policy optimized from simulator rewards with GRPO.
+        The trained CEO is a Qwen2.5 LoRA policy optimized from simulator rewards with GRPO.
         """
     )
 

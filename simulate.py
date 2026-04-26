@@ -196,7 +196,7 @@ def _build_agent_stack(agent_mode: str):
     if agent_mode == "trained_ceo":
         return build_trained_ceo_agents(
             adapter_path=os.getenv("MASS_CEO_ADAPTER_PATH", "outputs/models/ceo-grpo"),
-            base_model=os.getenv("MASS_CEO_BASE_MODEL", "Qwen/Qwen3-0.6B"),
+            base_model=os.getenv("MASS_CEO_BASE_MODEL", "Qwen/Qwen2.5-0.5B-Instruct"),
         )
     return build_heuristic_agents()
 
