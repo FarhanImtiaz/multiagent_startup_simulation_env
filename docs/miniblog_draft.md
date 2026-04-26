@@ -1,14 +1,14 @@
 # MASS: Teaching An LLM CEO To Run A Startup With GRPO
 
-> Mini-blog draft for the OpenEnv Hackathon. Replace the TODO links and final metrics after the Colab run completes.
+> Mini-blog draft for the OpenEnv Hackathon.
 
 ## TL;DR
 
 MASS is a multi-agent startup simulator built as an OpenEnv-compatible environment. Three specialist co-founders, Tech, Growth, and Finance, propose actions from noisy partial observations. A CEO agent chooses the final action and receives reward from the simulated company outcome.
 
-The goal is to train an LLM CEO policy that gets better at long-horizon strategic tradeoffs: when to invest in product, when to market, when to hire, when to conserve cash, and when to pivot.
+The goal is to train and evaluate an LLM CEO policy on long-horizon strategic tradeoffs: when to invest in product, when to market, when to hire, when to conserve cash, and when to pivot.
 
-For training, I use Hugging Face TRL GRPO with a Qwen2.5 LoRA CEO policy. The trained CEO is compared against a hand-written heuristic CEO baseline in the same simulator.
+For training, I use Hugging Face TRL GRPO with a small Qwen2.5-0.5B LoRA CEO policy. The final system compares a raw trained CEO, a hand-written heuristic CEO, and a governed GRPO CEO that combines the trained adapter with environment-aware safety constraints.
 
 ## Why A Startup Simulator?
 
@@ -71,11 +71,13 @@ It includes signals for:
 - decision efficiency
 - penalties for bankruptcy or unstable behavior
 
-The main risk in this environment is reward hacking through overly aggressive growth. A CEO can make user numbers look good temporarily by overspending, but that should not count as success if the company collapses. To reduce this, evaluation includes survival and financial constraints, and the trained CEO path uses a safety gate.
+The main risk in this environment is reward hacking through overly aggressive growth. A CEO can make user numbers look good temporarily by overspending, but that should not count as success if the company collapses. To reduce this, evaluation includes survival and financial constraints, and the final trained CEO path uses an environment-aware survival governor.
 
 ## Training With GRPO
 
-The training pipeline has three stages.
+The training pipeline follows a small-model, compute-budgeted workflow: train a compact model, checkpoint frequently, inspect reward components, and spend iteration time on the environment and reward signal instead of forcing a large model into memory.
+
+The pipeline has three stages.
 
 First, collect trajectories from the simulator:
 
@@ -112,18 +114,22 @@ python compare_policies.py --output-dir outputs/comparison
 
 ## What Improved?
 
-Final GRPO training is still running. This section will be updated with the completed Colab evaluation.
+GRPO improved the CEO's verifier-facing behavior: the model learned to emit valid action-format decisions and align with co-founder proposals. But the raw adapter was not safe as a standalone long-horizon CEO. It learned local behavior that looked reasonable to the reward proxy, while still collapsing under delayed business consequences.
 
-Target comparison:
+That led to the final architecture: a governed GRPO CEO. The trained adapter participates only in safe operating states; when cash, runway, users, product quality, or recovery signals are risky, the survival governor delegates to the deterministic CEO fallback.
 
-| Metric | Heuristic Baseline | Trained CEO + Safety Gate |
-| --- | ---: | ---: |
-| Average total reward | TODO | TODO |
-| Average final users | TODO | TODO |
-| Survival rate | TODO | TODO |
-| Decision efficiency | TODO | TODO |
+20-episode evaluation:
 
-The ideal result is not just a higher reward number. I want the trained CEO to improve reward, growth, or efficiency while preserving survival. A model that grows quickly but bankrupts the company is not a good CEO.
+| Metric | Raw GRPO CEO | Heuristic CEO | Governed GRPO CEO |
+| --- | ---: | ---: | ---: |
+| Average total reward | -5.243 | -13.520 | -13.520 |
+| Average final money | -2,538.432 | 19,244.960 | 19,244.960 |
+| Average final users | 103.550 | 116.900 | 116.900 |
+| Survival rate | 0.000 | 0.950 | 0.950 |
+| Decision efficiency | 0.097 | 0.160 | 0.160 |
+| Main failure mode | bankrupt | no_users in 1/20 | no_users in 1/20 |
+
+The important result is not that the adapter alone became a perfect CEO. It did not. The important result is that MASS exposes that failure clearly, then shows how a trained policy can be integrated safely with action masks and a fallback controller.
 
 ## Demo
 
@@ -143,9 +149,10 @@ A good startup CEO policy should not blindly chase one metric. It should reason 
 
 GRPO is useful here because the simulator can score outcomes directly. I do not need a perfect human-written label for every CEO decision. I can let the policy sample decisions, run them through the environment, and optimize toward higher-reward behavior.
 
+The main lesson was that long-horizon RL needs more than a scalar reward and a trained adapter. For realistic decision environments, the deployment architecture matters too: learned policy, verifiers, action masks, fallback controllers, and honest evaluation all work together.
+
 ## Links
 
-- Code: TODO
-- Hugging Face Space: TODO
-- Colab notebook: TODO
-- Final mini-blog / video / slides: TODO
+- Code: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
+- Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
+- Colab notebook: ../notebooks/MASS_CEO_Training_Colab.ipynb

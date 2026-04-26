@@ -19,11 +19,9 @@ The project is built for the OpenEnv hackathon themes of **multi-agent interacti
 
 ## Deliverables
 
-Replace these links before final submission:
-
-- Hugging Face Space: TODO
-- Colab training notebook: TODO
-- Mini-blog / writeup: TODO
+- Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
+- Colab training notebook: [notebooks/MASS_CEO_Training_Colab.ipynb](notebooks/MASS_CEO_Training_Colab.ipynb)
+- Mini-blog / writeup: [docs/miniblog_draft.md](docs/miniblog_draft.md)
 - Code repository: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 
 Supporting docs:
@@ -61,6 +59,18 @@ At each timestep:
 5. The environment returns a reward and the next observation.
 
 Episodes terminate when the startup reaches the horizon, runs out of money, or hits a success/failure condition.
+
+## CEO Architecture
+
+MASS evaluates three CEO variants:
+
+1. **Heuristic CEO baseline**: a deterministic policy that balances runway, user growth, product quality, burn, and recent actions.
+2. **Raw GRPO CEO**: a Qwen2.5-0.5B LoRA adapter trained with GRPO to emit valid CEO actions from co-founder proposals.
+3. **Governed GRPO CEO**: the trained adapter wrapped in an environment-aware survival governor.
+
+The governed CEO is the final deployed architecture. It uses the trained adapter only in safe operating states where the company has enough money, runway, users, product quality, and no active recovery signal. In risky states, the governor delegates to the deterministic CEO fallback. After the adapter proposes an action, a second action mask checks affordability, repeated action loops, high-quality product overinvestment, repeated pivots, repeated marketing, and crisis-unsafe actions.
+
+This is intentional. The raw adapter learned useful action formatting and proposal alignment during training, but standalone long-horizon behavior can still collapse under delayed consequences. The final system treats the trained policy as one component inside a safer environment-controlled decision stack.
 
 ## What The Agent Observes
 
@@ -108,6 +118,8 @@ The key design goal is to prevent trivial policies such as spending all cash on 
 
 The project uses Hugging Face TRL GRPO for the CEO policy.
 
+The training setup follows a small-model, compute-budgeted workflow: use a compact Qwen2.5-0.5B model, iterate on short runs, inspect reward components, checkpoint frequently, and spend effort on the environment and reward signal rather than forcing a large model into memory.
+
 Pipeline:
 
 1. Run the simulator to collect CEO decision trajectories.
@@ -151,23 +163,35 @@ python3 compare_policies.py --output-dir outputs/comparison
 
 ## What Improved After Training
 
-Final GRPO training is in progress. This section will be updated with the completed Colab run.
+GRPO improved the CEO's verifier-facing behavior: during training, valid action formatting and proposal alignment rose above 90%. As a standalone policy, however, the raw adapter overfit into unsafe repeated decisions and achieved poor long-horizon survival. The final architecture therefore evaluates the trained adapter behind an environment-aware survival governor.
 
-Planned comparison:
+Current 20-episode evaluation summary:
 
-| Metric | Heuristic Baseline | Trained CEO + Safety Gate |
-| --- | ---: | ---: |
-| Average total reward | TODO | TODO |
-| Average final users | TODO | TODO |
-| Survival rate | TODO | TODO |
-| Decision efficiency | TODO | TODO |
+| Metric | Raw GRPO CEO | Heuristic CEO | Governed GRPO CEO |
+| --- | ---: | ---: | ---: |
+| Average total reward | -5.243 | -13.520 | -13.520 |
+| Average final money | -2,538.432 | 19,244.960 | 19,244.960 |
+| Average final users | 103.550 | 116.900 | 116.900 |
+| Survival rate | 0.000 | 0.950 | 0.950 |
+| Decision efficiency | 0.097 | 0.160 | 0.160 |
+| Main failure mode | bankrupt | no_users in 1/20 | no_users in 1/20 |
 
-Plots to include after the final run:
+The key result is architectural: the raw trained CEO learned to produce valid actions, but was not safe enough to run directly. Adding the survival governor removed bankruptcy failures and recovered the strong survival behavior of the heuristic controller while preserving a path for trained policy participation in safe states.
+
+Required plots are committed under `docs/assets/`:
 
 - training loss curve
-- baseline vs trained reward curve
-- before/after metric comparison
+- training reward curve
+- baseline vs raw/governed reward comparison
 - policy comparison summary
+
+![GRPO training reward](docs/assets/reward_curve.png)
+
+![GRPO training loss](docs/assets/loss_curve.png)
+
+![Raw vs heuristic vs governed metrics](docs/assets/reward_comparison.png)
+
+![CEO policy safety summary](docs/assets/policy_summary.png)
 
 ## Hugging Face Space Demo
 
@@ -275,6 +299,7 @@ Final artifacts should be committed under:
 - `docs/assets/reward_curve.png`
 - `docs/assets/reward_comparison.png`
 - `docs/assets/policy_comparison.png`
+- `docs/assets/policy_summary.png`
 - `docs/comparison_summary.json`
 - `docs/comparison_report.md`
 
@@ -283,12 +308,12 @@ Generated training/evaluation outputs are written to `outputs/` and are intentio
 ## Known Limitations
 
 - The simulator is compact and designed for hackathon-scale training, not a full business benchmark.
-- The trained model is a LoRA CEO policy and should be evaluated through the provided safety gate.
-- Final metrics are pending the current GRPO Colab run.
+- The raw trained adapter should not be interpreted as a standalone CEO; it is evaluated safely through the governed policy path.
+- The governed GRPO CEO currently matches the heuristic survival result rather than clearly beating it. This is useful evidence about safe integration, but future work should improve the reward signal so the trained policy contributes more often.
 
 ## Next Improvements
 
 - Add more reward components and anti-reward-hacking checks.
 - Add curriculum variants with easier and harder market conditions.
-- Compare GRPO against prompt-only and heuristic baselines.
+- Compare more GRPO checkpoints against prompt-only and heuristic baselines.
 - Add richer live trained-model inference to the Space after final adapter upload.
