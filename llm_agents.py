@@ -130,6 +130,17 @@ class PromptedFinanceCoFounder(PromptedAgentMixin):
 
 
 class PromptedCEO:
+    CASH_CONTROL_RUNWAY = 5.0
+    CASH_CONTROL_MONEY = 50000.0
+    CRISIS_RUNWAY = 2.0
+    SPEND_ACTIONS = {"hire_employee", "invest_in_product", "run_marketing_campaign", "pivot_strategy"}
+    ACTION_COSTS = {
+        "hire_employee": 12000,
+        "invest_in_product": 9000,
+        "run_marketing_campaign": 7000,
+        "pivot_strategy": 11000,
+    }
+
     def __init__(
         self,
         generator: Optional[ActionGenerator] = None,
@@ -165,21 +176,13 @@ class PromptedCEO:
         if action is None:
             return fallback
         original_action = action
-        action = self._apply_safety_gate(action, fallback, observation, proposals)
-        if (
-            (observation.get("crisis_level") == "crisis" or observation.get("runway_hint", 999) < 2)
-            and action in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS
-        ):
-            return ActionProposal(
-                action="fire_employee",
-                reasoning=f"LLM safety override: {action} is disallowed in crisis, so selected fire_employee.",
-            )
+        action, gate_reason = self._apply_safety_gate(action, fallback, observation, proposals)
         if action != original_action:
             return ActionProposal(
                 action=action,
                 reasoning=(
-                    f"LLM safety gate changed {original_action} to {action} "
-                    "because runway or cash risk was too high."
+                    f"LLM survival governor changed {original_action} to {action}: "
+                    f"{gate_reason}"
                 ),
             )
         return ActionProposal(action=action, reasoning=f"LLM-selected final decision: {action}")
@@ -190,59 +193,112 @@ class PromptedCEO:
         fallback: ActionProposal,
         observation: Dict[str, object],
         proposals: Dict[str, ActionProposal],
+    ) -> Tuple[str, str]:
+        runway = float(observation.get("runway_hint", 999))
+        money = float(observation.get("money", 0.0))
+        burn_rate = float(observation.get("burn_rate", 1.0))
+        quality = float(observation.get("product_quality", 0.0))
+        team_size = int(observation.get("team_size", 1))
+        recent_actions = list(observation.get("recent_actions", []))
+        crisis_level = str(observation.get("crisis_level", "normal"))
+        consecutive_streak = int(observation.get("consecutive_action_streak", 0))
+        last_action = str(observation.get("last_action", "none"))
+        finance_action = proposals.get("Finance Co-founder", fallback).action
+        fallback_action = self._safe_fallback_action(fallback, observation, finance_action)
+
+        in_crisis = crisis_level == "crisis" or runway < self.CRISIS_RUNWAY or money < burn_rate * 2
+        cash_control = in_crisis or runway < self.CASH_CONTROL_RUNWAY or money < self.CASH_CONTROL_MONEY
+
+        if cash_control:
+            if action != fallback_action:
+                return (
+                    fallback_action,
+                    "cash or runway is in the control zone, so the deterministic CEO fallback owns survival decisions.",
+                )
+            return action, "action accepted inside cash-control zone because it matches the survival fallback."
+
+        if not self._can_afford_action(action, observation):
+            return fallback_action, "selected action would leave too little cash buffer."
+
+        if action in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS and (in_crisis or runway < 4):
+            return fallback_action, "growth or hiring is masked while runway is unsafe."
+
+        if action == "fire_employee":
+            if team_size <= 1:
+                return fallback_action, "cannot cut below a one-person team."
+            if recent_actions[-2:].count("fire_employee") > 0 and not in_crisis:
+                return fallback_action, "avoids repeated cost-cutting when the company is not in crisis."
+
+        if action == "invest_in_product":
+            if quality >= 0.85:
+                return fallback_action, "product quality is already high, so repeated product investment is blocked."
+            if recent_actions[-3:].count("invest_in_product") >= 2:
+                return fallback_action, "prevents the trained model from looping on product investment."
+
+        if action == "run_marketing_campaign":
+            if quality < 0.58:
+                return fallback_action, "marketing is blocked until product quality can retain acquired users."
+            if recent_actions[-3:].count("run_marketing_campaign") >= 2:
+                return fallback_action, "prevents repeated marketing spend without a pause."
+
+        if action == "pivot_strategy" and recent_actions[-3:].count("pivot_strategy") > 0:
+            return fallback_action, "prevents repeated pivots before the previous reset can show an effect."
+
+        if action == "do_nothing" and last_action == "do_nothing" and consecutive_streak >= 3:
+            return fallback_action, "prevents passive waiting loops after several identical decisions."
+
+        if action == last_action and consecutive_streak >= 3 and fallback_action != action:
+            return fallback_action, "breaks a repeated action loop."
+
+        return action, "trained CEO action passed the survival governor."
+
+    def _safe_fallback_action(
+        self,
+        fallback: ActionProposal,
+        observation: Dict[str, object],
+        finance_action: str,
     ) -> str:
         runway = float(observation.get("runway_hint", 999))
         money = float(observation.get("money", 0.0))
         burn_rate = float(observation.get("burn_rate", 1.0))
-        recent_actions = list(observation.get("recent_actions", []))
+        team_size = int(observation.get("team_size", 1))
         crisis_level = str(observation.get("crisis_level", "normal"))
-        consecutive_streak = int(observation.get("consecutive_action_streak", 0))
-        low_runway = runway < 4
-        cash_stress = money < burn_rate * 4
-        repeated_growth_spend = recent_actions[-2:].count("run_marketing_campaign") >= 2
-        finance_action = proposals.get("Finance Co-founder", fallback).action
 
-        if crisis_level == "crisis" or runway < 2:
+        if fallback.action in self.allowed_actions and self._can_afford_action(fallback.action, observation):
             if fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
-                return fallback.action
-            if finance_action == "fire_employee" and int(observation.get("team_size", 1)) > 1:
-                return "fire_employee"
-            if action == "do_nothing" and consecutive_streak >= 3:
                 return fallback.action
 
         if (
-            runway < 3
+            (crisis_level == "crisis" or runway < self.CRISIS_RUNWAY or money < burn_rate * 2)
             and finance_action == "fire_employee"
-            and int(observation.get("team_size", 1)) > 1
-            and recent_actions[-2:].count("fire_employee") == 0
-            and action in {
-            "do_nothing",
-            "invest_in_product",
-            "run_marketing_campaign",
-            "hire_employee",
-            }
+            and team_size > 1
         ):
             return "fire_employee"
 
-        if consecutive_streak >= 3 and action == observation.get("last_action"):
-            if finance_action == "fire_employee" and runway < 4 and int(observation.get("team_size", 1)) > 1:
-                return "fire_employee"
-            if fallback.action != action:
-                return fallback.action
+        return "do_nothing"
 
-        if action in {"run_marketing_campaign", "hire_employee"} and (
-            low_runway or cash_stress or repeated_growth_spend
-        ):
-            if fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
-                return fallback.action
-            return "fire_employee"
+    def _can_afford_action(self, action: str, observation: Dict[str, object]) -> bool:
+        cost = self.ACTION_COSTS.get(action, 0)
+        if cost <= 0:
+            return True
 
-        if action == "invest_in_product" and runway < 2:
-            if fallback.action not in StartupEnvironment.CRISIS_DISALLOWED_ACTIONS:
-                return fallback.action
-            return "fire_employee"
+        money = float(observation.get("money", 0.0))
+        burn_rate = float(observation.get("burn_rate", 12000.0))
+        runway = float(observation.get("runway_hint", 999))
 
-        return action
+        if action == "hire_employee":
+            required_buffer = burn_rate * 1.5
+        elif action == "pivot_strategy":
+            required_buffer = burn_rate
+        elif action == "invest_in_product":
+            required_buffer = burn_rate * 0.75
+        else:
+            required_buffer = burn_rate * 0.5
+
+        if runway < self.CASH_CONTROL_RUNWAY and action in self.SPEND_ACTIONS:
+            return False
+
+        return money >= cost + required_buffer
 
     def build_prompt(
         self,
