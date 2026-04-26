@@ -44,6 +44,6 @@ Valid CEO actions:
 
 ## Training
 
-The CEO policy is trained with Hugging Face TRL GRPO on Qwen2.5-0.5B. The final demo compares the baseline CEO with a GRPO-trained governed CEO that uses an environment-aware survival controller.
+The CEO policy is trained with Hugging Face TRL GRPO on Qwen2.5-0.5B. The final demo compares the baseline CEO, a raw GRPO ablation, and a GRPO-trained governed CEO that uses an environment-aware survival controller.
 
 Final plots are committed under `docs/assets/` and shown in the Training Result tab.

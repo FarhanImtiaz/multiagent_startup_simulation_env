@@ -64,12 +64,15 @@ Episodes terminate when the startup reaches the horizon, runs out of money, or h
 
 ## CEO Architecture
 
-MASS evaluates two CEO variants:
+MASS reports three CEO runs so the final architecture is easy to understand:
 
 1. **Baseline CEO**: a deterministic policy that balances runway, user growth, product quality, burn, and recent actions.
-2. **GRPO + Governed CEO**: a Qwen2.5-0.5B LoRA adapter trained with GRPO and wrapped in an environment-aware survival governor.
+2. **Raw GRPO CEO ablation**: the trained Qwen2.5-0.5B LoRA adapter evaluated without the survival governor.
+3. **GRPO + Governed CEO**: the same trained adapter wrapped in an environment-aware survival governor.
 
 The governed CEO is the final trained architecture. It uses the GRPO adapter only in safe operating states where the company has enough money, runway, users, product quality, and no active recovery signal. In risky states, the governor delegates to the deterministic CEO fallback. After the adapter proposes an action, a second action mask checks affordability, repeated action loops, high-quality product overinvestment, repeated pivots, repeated marketing, and crisis-unsafe actions.
+
+The raw GRPO run is included as an ablation, not as the final system. It shows why long-horizon LLM policies need environment-aware constraints: the adapter learned to emit valid proposal-aligned actions, but without a governor it still made unsafe repeated decisions.
 
 ## What The Agent Observes
 
@@ -165,33 +168,33 @@ python3 compare_policies.py --output-dir outputs/comparison
 
 ## What Improved After Training
 
-GRPO improved the CEO's verifier-facing behavior during training: valid action formatting and proposal alignment rose above 90%. The final evaluation compares the baseline CEO against the GRPO-trained CEO running behind an environment-aware survival governor.
+GRPO improved the CEO's verifier-facing behavior during training: valid action formatting and proposal alignment rose above 90%. The evaluation includes the raw GRPO CEO as an ablation, then compares the final governed CEO against the baseline.
 
 Current 20-episode evaluation summary:
 
-| Metric | Baseline CEO | GRPO + Governed CEO |
-| --- | ---: | ---: |
-| Average total reward | -13.520 | -13.520 |
-| Average final money | 19,244.960 | 19,244.960 |
-| Average final users | 116.900 | 116.900 |
-| Survival rate | 0.950 | 0.950 |
-| Decision efficiency | 0.160 | 0.160 |
-| Main failure mode | no_users in 1/20 | no_users in 1/20 |
+| Metric | Baseline CEO | Raw GRPO CEO ablation | GRPO + Governed CEO |
+| --- | ---: | ---: | ---: |
+| Average total reward | -13.520 | -5.243 | -13.520 |
+| Average final money | 19,244.960 | -2,538.432 | 19,244.960 |
+| Average final users | 116.900 | 103.550 | 116.900 |
+| Survival rate | 0.950 | 0.000 | 0.950 |
+| Decision efficiency | 0.160 | 0.097 | 0.160 |
+| Main failure mode | no_users in 1/20 | bankruptcy-heavy | no_users in 1/20 |
 
-The key result is architectural: the trained model is integrated as a constrained decision policy rather than an unconstrained controller. The governed CEO preserves the baseline survival rate while keeping a trained policy available for safe operating states.
+The key result is architectural: raw training improved local action behavior, but the unconstrained policy was not safe enough for long-horizon deployment. The governed CEO preserves the baseline survival rate while keeping a trained policy available for safe operating states. In other words, MASS does not just train a policy; it demonstrates the safety layer needed to deploy that policy in a delayed-consequence environment.
 
 Required plots are committed under `docs/assets/`:
 
 - training loss curve
 - training reward curve
-- baseline vs GRPO+governed comparison
+- baseline vs raw/governed comparison
 - policy comparison summary
 
 ![GRPO training reward](docs/assets/reward_curve.png)
 
 ![GRPO training loss](docs/assets/loss_curve.png)
 
-![Baseline vs GRPO governed metrics](docs/assets/reward_comparison.png)
+![Baseline vs raw/governed metrics](docs/assets/reward_comparison.png)
 
 ![CEO policy safety summary](docs/assets/policy_summary.png)
 
@@ -310,7 +313,7 @@ Generated training/evaluation outputs are written to `outputs/` and are intentio
 ## Known Limitations
 
 - The simulator is compact and designed for hackathon-scale training, not a full business benchmark.
-- The governed GRPO CEO currently matches the baseline survival result rather than clearly beating it. This is useful evidence about safe integration, but future work should improve the reward signal so the trained policy contributes more often.
+- The governed GRPO CEO is optimized for safe deployment rather than unconstrained reward maximization. Future work should improve the reward signal so the trained policy contributes more often while preserving survival.
 
 ## Next Improvements
 

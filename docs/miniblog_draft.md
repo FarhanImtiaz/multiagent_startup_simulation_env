@@ -8,7 +8,7 @@ MASS is a multi-agent startup simulator built as an OpenEnv-compatible environme
 
 The goal is to train and evaluate an LLM CEO policy on long-horizon strategic tradeoffs: when to invest in product, when to market, when to hire, when to conserve cash, and when to pivot.
 
-For training, I use Hugging Face TRL GRPO with a small Qwen2.5-0.5B LoRA CEO policy. The final system compares the baseline CEO against a governed GRPO CEO that combines the trained adapter with environment-aware safety constraints.
+For training, I use Hugging Face TRL GRPO with a small Qwen2.5-0.5B LoRA CEO policy. The final report compares the baseline CEO, a raw GRPO ablation, and a governed GRPO CEO that combines the trained adapter with environment-aware safety constraints.
 
 ## Why A Startup Simulator?
 
@@ -117,20 +117,20 @@ python compare_policies.py --output-dir outputs/comparison
 
 ## What Improved?
 
-GRPO improved the CEO's verifier-facing behavior: the model learned to emit valid action-format decisions and align with co-founder proposals. The final architecture is a governed GRPO CEO: the trained adapter participates only in safe operating states, while cash, runway, users, product quality, and recovery-risk states are handled by the environment-aware survival governor.
+GRPO improved the CEO's verifier-facing behavior: the model learned to emit valid action-format decisions and align with co-founder proposals. I include the raw GRPO CEO as an ablation to show an important long-horizon failure mode: local action validity is not the same as safe deployment. The final architecture is a governed GRPO CEO: the trained adapter participates only in safe operating states, while cash, runway, users, product quality, and recovery-risk states are handled by the environment-aware survival governor.
 
 20-episode evaluation:
 
-| Metric | Baseline CEO | GRPO + Governed CEO |
-| --- | ---: | ---: |
-| Average total reward | -13.520 | -13.520 |
-| Average final money | 19,244.960 | 19,244.960 |
-| Average final users | 116.900 | 116.900 |
-| Survival rate | 0.950 | 0.950 |
-| Decision efficiency | 0.160 | 0.160 |
-| Main failure mode | no_users in 1/20 | no_users in 1/20 |
+| Metric | Baseline CEO | Raw GRPO CEO ablation | GRPO + Governed CEO |
+| --- | ---: | ---: | ---: |
+| Average total reward | -13.520 | -5.243 | -13.520 |
+| Average final money | 19,244.960 | -2,538.432 | 19,244.960 |
+| Average final users | 116.900 | 103.550 | 116.900 |
+| Survival rate | 0.950 | 0.000 | 0.950 |
+| Decision efficiency | 0.160 | 0.097 | 0.160 |
+| Main failure mode | no_users in 1/20 | bankruptcy-heavy | no_users in 1/20 |
 
-The important result is that MASS evaluates the trained policy as part of a realistic deployment stack: learned adapter, action masks, survival governor, and baseline fallback. The governed GRPO CEO preserves the baseline survival rate while making trained-policy participation possible in safe states.
+The important result is that MASS evaluates the trained policy as part of a realistic deployment stack: learned adapter, action masks, survival governor, and baseline fallback. Raw GRPO alone is not enough; the governed GRPO CEO recovers survival from 0.00 to 0.95 and matches the strong baseline while making trained-policy participation possible in safe states.
 
 ## Demo
 

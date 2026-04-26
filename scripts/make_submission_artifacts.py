@@ -168,35 +168,40 @@ def plot_line(path, title, x_label, y_label, points, y_min=None, y_max=None):
 def plot_bars(path):
     img = make_canvas(900, 560)
     black = (30, 30, 30)
+    red = (214, 39, 40)
     green = (44, 160, 44)
     orange = (255, 127, 14)
     left, top, right, bottom = 95, 80, 850, 455
     metrics = [
-        ("REWARD", -13.52, -13.52),
-        ("MONEY", 19245.0, 19245.0),
-        ("USERS", 116.9, 116.9),
-        ("SURVIVAL", 0.95, 0.95),
-        ("EFF", 0.16, 0.16),
+        ("MONEY", 19245.0, -2538.4, 19245.0),
+        ("USERS", 116.9, 103.6, 116.9),
+        ("SURVIVAL", 0.95, 0.0, 0.95),
+        ("EFF", 0.16, 0.097, 0.16),
     ]
 
-    draw_text(img, 115, 25, "BASELINE VS GRPO GOVERNED", black, scale=3)
+    draw_text(img, 110, 25, "BASELINE RAW GRPO GOVERNED", black, scale=3)
     draw_rect(img, left, top, right, bottom, black)
     group_w = (right - left) // len(metrics)
-    for i, (name, base, governed) in enumerate(metrics):
-        x0 = left + i * group_w + 28
-        max_val = max(abs(base), abs(governed), 1)
+    for i, (name, base, raw_grpo, governed) in enumerate(metrics):
+        x0 = left + i * group_w + 35
+        max_val = max(abs(base), abs(raw_grpo), abs(governed), 1)
         base_h = int(abs(base) / max_val * 230)
+        raw_h = int(abs(raw_grpo) / max_val * 230)
         governed_h = int(abs(governed) / max_val * 230)
-        draw_rect(img, x0, bottom - base_h, x0 + 35, bottom, orange, fill=True)
-        draw_rect(img, x0 + 50, bottom - governed_h, x0 + 85, bottom, green, fill=True)
+        draw_rect(img, x0, bottom - base_h, x0 + 28, bottom, orange, fill=True)
+        draw_rect(img, x0 + 38, bottom - raw_h, x0 + 66, bottom, red, fill=True)
+        draw_rect(img, x0 + 76, bottom - governed_h, x0 + 104, bottom, green, fill=True)
         draw_text(img, x0 - 10, bottom + 18, name, black, scale=1)
-        draw_text(img, x0 - 8, bottom - base_h - 22, f"{base:.1f}", black, scale=1)
-        draw_text(img, x0 + 43, bottom - governed_h - 22, f"{governed:.1f}", black, scale=1)
+        draw_text(img, x0 - 6, bottom - base_h - 22, f"{base:.1f}", black, scale=1)
+        draw_text(img, x0 + 32, bottom - raw_h - 22, f"{raw_grpo:.1f}", black, scale=1)
+        draw_text(img, x0 + 70, bottom - governed_h - 22, f"{governed:.1f}", black, scale=1)
 
-    draw_rect(img, 250, 500, 270, 520, orange, fill=True)
-    draw_text(img, 280, 503, "BASELINE", black, scale=1)
-    draw_rect(img, 470, 500, 490, 520, green, fill=True)
-    draw_text(img, 500, 503, "GRPO GOVERNED", black, scale=1)
+    draw_rect(img, 110, 500, 130, 520, orange, fill=True)
+    draw_text(img, 140, 503, "BASELINE", black, scale=1)
+    draw_rect(img, 320, 500, 340, 520, red, fill=True)
+    draw_text(img, 350, 503, "RAW GRPO", black, scale=1)
+    draw_rect(img, 530, 500, 550, 520, green, fill=True)
+    draw_text(img, 560, 503, "GOVERNED", black, scale=1)
     save_png(path, img)
 
 
@@ -204,10 +209,11 @@ def plot_reward_curve(path):
     img = make_canvas(900, 560)
     black = (30, 30, 30)
     orange = (255, 127, 14)
+    red = (214, 39, 40)
     green = (44, 160, 44)
     grid = (215, 220, 225)
     left, top, right, bottom = 120, 80, 820, 460
-    values = [("BASELINE", -13.52, orange), ("GRPO GOV", -13.52, green)]
+    values = [("BASELINE", -13.52, orange), ("RAW GRPO", -5.243, red), ("GOVERNED", -13.52, green)]
     y_min, y_max = -16.0, 0.0
 
     draw_text(img, 165, 25, "AVERAGE EPISODE REWARD", black, scale=3)
@@ -218,7 +224,7 @@ def plot_reward_curve(path):
 
     zero_y = int(bottom - (0 - y_min) / (y_max - y_min) * (bottom - top))
     for i, (name, value, color) in enumerate(values):
-        x0 = left + 180 + i * 230
+        x0 = left + 110 + i * 190
         y = int(bottom - (value - y_min) / (y_max - y_min) * (bottom - top))
         draw_rect(img, x0, zero_y, x0 + 90, y, color, fill=True)
         draw_text(img, x0 - 12, bottom + 20, name, black, scale=1)
@@ -226,31 +232,34 @@ def plot_reward_curve(path):
 
     draw_text(img, 35, top - 5, "0", black, scale=1)
     draw_text(img, 25, bottom - 5, "-16", black, scale=1)
-    draw_text(img, 260, 510, "FINAL COLAB POLICY EVALUATION", black, scale=2)
+    draw_text(img, 240, 510, "RAW REWARD HIDES SURVIVAL RISK", black, scale=2)
     save_png(path, img)
 
 
 def plot_policy_summary(path):
     img = make_canvas(900, 560)
     black = (30, 30, 30)
+    red = (214, 39, 40)
     green = (44, 160, 44)
     orange = (255, 127, 14)
 
     draw_text(img, 125, 25, "CEO POLICY SAFETY SUMMARY", black, scale=3)
-    draw_text(img, 90, 110, "BASELINE CEO", orange, scale=2)
-    draw_text(img, 90, 150, "SURVIVAL 0.95", black, scale=2)
-    draw_text(img, 90, 185, "19 OF 20 REACH MAX DAYS", black, scale=2)
-    draw_text(img, 90, 220, "DETERMINISTIC POLICY", black, scale=2)
+    draw_text(img, 70, 110, "BASELINE CEO", orange, scale=2)
+    draw_text(img, 70, 150, "SURVIVAL 0.95", black, scale=2)
+    draw_text(img, 70, 185, "19 OF 20 MAX DAYS", black, scale=2)
 
-    draw_text(img, 510, 110, "GOVERNED GRPO CEO", green, scale=2)
-    draw_text(img, 510, 150, "SURVIVAL 0.95", black, scale=2)
-    draw_text(img, 510, 185, "19 OF 20 REACH MAX DAYS", black, scale=2)
-    draw_text(img, 510, 220, "TRAINED ADAPTER PLUS GOVERNOR", black, scale=2)
+    draw_text(img, 350, 110, "RAW GRPO", red, scale=2)
+    draw_text(img, 350, 150, "SURVIVAL 0.00", black, scale=2)
+    draw_text(img, 350, 185, "BANKRUPTCY LOOP", black, scale=2)
 
-    draw_text(img, 205, 325, "GOVERNED ARCHITECTURE", black, scale=2)
-    draw_text(img, 205, 365, "GRPO POLICY", black, scale=2)
-    draw_text(img, 205, 400, "PLUS ACTION MASK", black, scale=2)
-    draw_text(img, 205, 435, "PLUS SURVIVAL FALLBACK", black, scale=2)
+    draw_text(img, 620, 110, "GOVERNED", green, scale=2)
+    draw_text(img, 620, 150, "SURVIVAL 0.95", black, scale=2)
+    draw_text(img, 620, 185, "19 OF 20 MAX DAYS", black, scale=2)
+
+    draw_text(img, 105, 300, "LESSON", black, scale=2)
+    draw_text(img, 105, 340, "GRPO LEARNED VALID ACTIONS", black, scale=2)
+    draw_text(img, 105, 375, "RAW POLICY WAS NOT SAFE", black, scale=2)
+    draw_text(img, 105, 410, "GOVERNOR RECOVERED SURVIVAL", black, scale=2)
     save_png(path, img)
 
 
