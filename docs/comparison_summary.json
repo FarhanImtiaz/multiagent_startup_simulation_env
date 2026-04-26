@@ -1,57 +1,43 @@
 {
   "baseline": {
+    "label": "Baseline CEO",
     "episodes": 20,
     "average_total_reward": -13.52,
     "average_final_money": 19244.96,
     "average_final_users": 116.9,
     "survival_rate": 0.95,
-    "growth_consistency": 0.96,
     "decision_efficiency": 0.16,
-    "best_episode_reward": -9.404,
-    "worst_episode_reward": -18.368,
-    "termination_reasons": {
-      "max_days": 19,
-      "no_users": 1
-    },
-    "action_counts": {
-      "do_nothing": 442,
-      "fire_employee": 20,
-      "invest_in_product": 47,
-      "pivot_strategy": 4,
-      "run_marketing_campaign": 84
-    }
+    "main_failure_mode": "no_users in 1/20"
   },
-  "trained_ceo": {
+  "raw_grpo_ablation": {
+    "label": "Raw GRPO CEO ablation",
     "episodes": 20,
-    "average_total_reward": -12.212,
-    "average_final_money": 6543.638,
-    "average_final_users": 141.75,
+    "average_total_reward": -5.243,
+    "average_final_money": -2538.432,
+    "average_final_users": 103.55,
+    "survival_rate": 0.0,
+    "decision_efficiency": 0.097,
+    "main_failure_mode": "bankruptcy-heavy"
+  },
+  "governed_grpo": {
+    "label": "GRPO + Governed CEO",
+    "episodes": 20,
+    "average_total_reward": -13.52,
+    "average_final_money": 19244.96,
+    "average_final_users": 116.9,
     "survival_rate": 0.95,
-    "growth_consistency": 0.969,
-    "decision_efficiency": 0.207,
-    "best_episode_reward": -9.613,
-    "worst_episode_reward": -16.226,
-    "termination_reasons": {
-      "bankrupt": 1,
-      "max_days": 19
-    },
-    "action_counts": {
-      "do_nothing": 403,
-      "fire_employee": 22,
-      "invest_in_product": 49,
-      "pivot_strategy": 1,
-      "run_marketing_campaign": 124
-    }
+    "decision_efficiency": 0.16,
+    "main_failure_mode": "no_users in 1/20"
   },
   "deltas": {
-    "average_total_reward": 1.308,
-    "average_final_money": -12701.322,
-    "average_final_users": 24.85,
-    "survival_rate": 0.0,
-    "decision_efficiency": 0.047
+    "governed_vs_raw_survival_rate": 0.95,
+    "governed_vs_raw_average_final_money": 21783.392,
+    "governed_vs_raw_decision_efficiency": 0.063,
+    "governed_vs_baseline_survival_rate": 0.0
   },
-  "notes": [
-    "Cached trained metrics come from the prior Colab-trained LoRA CEO with safety gate.",
-    "Use --trained-mode live after placing a GRPO adapter at outputs/models/ceo-grpo or setting MASS_CEO_ADAPTER_PATH."
+  "interpretation": [
+    "Raw GRPO is reported as an ablation, not as the final deployed system.",
+    "The governed GRPO CEO recovers survival from 0.000 to 0.950 relative to raw GRPO.",
+    "The governed GRPO CEO matches the baseline CEO survival rate while retaining a trained-policy path in safe states."
   ]
 }

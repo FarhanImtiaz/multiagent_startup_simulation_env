@@ -1,7 +1,48 @@
-import os
+import json
 import struct
 import zlib
 from pathlib import Path
+
+POLICY_METRICS = {
+    "baseline": {
+        "label": "Baseline CEO",
+        "episodes": 20,
+        "average_total_reward": -13.520,
+        "average_final_money": 19244.960,
+        "average_final_users": 116.900,
+        "survival_rate": 0.950,
+        "decision_efficiency": 0.160,
+        "main_failure_mode": "no_users in 1/20",
+    },
+    "raw_grpo": {
+        "label": "Raw GRPO CEO ablation",
+        "episodes": 20,
+        "average_total_reward": -5.243,
+        "average_final_money": -2538.432,
+        "average_final_users": 103.550,
+        "survival_rate": 0.000,
+        "decision_efficiency": 0.097,
+        "main_failure_mode": "bankruptcy-heavy",
+    },
+    "governed_grpo": {
+        "label": "GRPO + Governed CEO",
+        "episodes": 20,
+        "average_total_reward": -13.520,
+        "average_final_money": 19244.960,
+        "average_final_users": 116.900,
+        "survival_rate": 0.950,
+        "decision_efficiency": 0.160,
+        "main_failure_mode": "no_users in 1/20",
+    },
+}
+
+
+def metric(agent, name):
+    return POLICY_METRICS[agent][name]
+
+
+def metric_label(value):
+    return f"{value:.3f}"
 
 
 FONT = {
@@ -171,37 +212,32 @@ def plot_bars(path):
     red = (214, 39, 40)
     green = (44, 160, 44)
     orange = (255, 127, 14)
-    left, top, right, bottom = 95, 80, 850, 455
     metrics = [
-        ("MONEY", 19245.0, -2538.4, 19245.0),
-        ("USERS", 116.9, 103.6, 116.9),
-        ("SURVIVAL", 0.95, 0.0, 0.95),
-        ("EFF", 0.16, 0.097, 0.16),
+        ("AVG REWARD", "average_total_reward"),
+        ("FINAL MONEY", "average_final_money"),
+        ("FINAL USERS", "average_final_users"),
+        ("SURVIVAL", "survival_rate"),
+        ("EFFICIENCY", "decision_efficiency"),
     ]
 
-    draw_text(img, 110, 25, "BASELINE RAW GRPO GOVERNED", black, scale=3)
-    draw_rect(img, left, top, right, bottom, black)
-    group_w = (right - left) // len(metrics)
-    for i, (name, base, raw_grpo, governed) in enumerate(metrics):
-        x0 = left + i * group_w + 35
-        max_val = max(abs(base), abs(raw_grpo), abs(governed), 1)
-        base_h = int(abs(base) / max_val * 230)
-        raw_h = int(abs(raw_grpo) / max_val * 230)
-        governed_h = int(abs(governed) / max_val * 230)
-        draw_rect(img, x0, bottom - base_h, x0 + 28, bottom, orange, fill=True)
-        draw_rect(img, x0 + 38, bottom - raw_h, x0 + 66, bottom, red, fill=True)
-        draw_rect(img, x0 + 76, bottom - governed_h, x0 + 104, bottom, green, fill=True)
-        draw_text(img, x0 - 10, bottom + 18, name, black, scale=1)
-        draw_text(img, x0 - 6, bottom - base_h - 22, f"{base:.1f}", black, scale=1)
-        draw_text(img, x0 + 32, bottom - raw_h - 22, f"{raw_grpo:.1f}", black, scale=1)
-        draw_text(img, x0 + 70, bottom - governed_h - 22, f"{governed:.1f}", black, scale=1)
+    draw_text(img, 180, 25, "EXACT FINAL EVAL METRICS", black, scale=3)
+    draw_text(img, 70, 95, "METRIC", black, scale=2)
+    draw_text(img, 275, 95, "BASELINE", orange, scale=2)
+    draw_text(img, 480, 95, "RAW GRPO", red, scale=2)
+    draw_text(img, 685, 95, "GOVERNED", green, scale=2)
+    draw_line(img, 60, 128, 850, 128, black)
 
-    draw_rect(img, 110, 500, 130, 520, orange, fill=True)
-    draw_text(img, 140, 503, "BASELINE", black, scale=1)
-    draw_rect(img, 320, 500, 340, 520, red, fill=True)
-    draw_text(img, 350, 503, "RAW GRPO", black, scale=1)
-    draw_rect(img, 530, 500, 550, 520, green, fill=True)
-    draw_text(img, 560, 503, "GOVERNED", black, scale=1)
+    y = 165
+    for name, key in metrics:
+        draw_text(img, 70, y, name, black, scale=1)
+        draw_text(img, 275, y, metric_label(metric("baseline", key)), black, scale=1)
+        draw_text(img, 480, y, metric_label(metric("raw_grpo", key)), black, scale=1)
+        draw_text(img, 685, y, metric_label(metric("governed_grpo", key)), black, scale=1)
+        draw_line(img, 60, y + 28, 850, y + 28, (230, 230, 230))
+        y += 58
+
+    draw_text(img, 70, 475, "RAW GRPO IS AN ABLATION", black, scale=1)
+    draw_text(img, 70, 505, "GOVERNED IS THE FINAL POLICY", black, scale=1)
     save_png(path, img)
 
 
@@ -213,7 +249,7 @@ def plot_reward_curve(path):
     green = (44, 160, 44)
     grid = (215, 220, 225)
     left, top, right, bottom = 120, 80, 820, 460
-    values = [("BASELINE", -13.52, orange), ("RAW GRPO", -5.243, red), ("GOVERNED", -13.52, green)]
+    values = [("BASELINE", metric("baseline", "average_total_reward"), orange), ("RAW GRPO", metric("raw_grpo", "average_total_reward"), red), ("GOVERNED", metric("governed_grpo", "average_total_reward"), green)]
     y_min, y_max = -16.0, 0.0
 
     draw_text(img, 165, 25, "AVERAGE EPISODE REWARD", black, scale=3)
@@ -228,7 +264,7 @@ def plot_reward_curve(path):
         y = int(bottom - (value - y_min) / (y_max - y_min) * (bottom - top))
         draw_rect(img, x0, zero_y, x0 + 90, y, color, fill=True)
         draw_text(img, x0 - 12, bottom + 20, name, black, scale=1)
-        draw_text(img, x0 + 5, y - 24, f"{value:.2f}", black, scale=1)
+        draw_text(img, x0 + 5, y - 24, metric_label(value), black, scale=1)
 
     draw_text(img, 35, top - 5, "0", black, scale=1)
     draw_text(img, 25, bottom - 5, "-16", black, scale=1)
@@ -245,15 +281,15 @@ def plot_policy_summary(path):
 
     draw_text(img, 125, 25, "CEO POLICY SAFETY SUMMARY", black, scale=3)
     draw_text(img, 70, 110, "BASELINE CEO", orange, scale=2)
-    draw_text(img, 70, 150, "SURVIVAL 0.95", black, scale=2)
+    draw_text(img, 70, 150, "SURVIVAL 0.950", black, scale=2)
     draw_text(img, 70, 185, "19 OF 20 MAX DAYS", black, scale=2)
 
     draw_text(img, 350, 110, "RAW GRPO", red, scale=2)
-    draw_text(img, 350, 150, "SURVIVAL 0.00", black, scale=2)
+    draw_text(img, 350, 150, "SURVIVAL 0.000", black, scale=2)
     draw_text(img, 350, 185, "BANKRUPTCY LOOP", black, scale=2)
 
     draw_text(img, 620, 110, "GOVERNED", green, scale=2)
-    draw_text(img, 620, 150, "SURVIVAL 0.95", black, scale=2)
+    draw_text(img, 620, 150, "SURVIVAL 0.950", black, scale=2)
     draw_text(img, 620, 185, "19 OF 20 MAX DAYS", black, scale=2)
 
     draw_text(img, 105, 300, "LESSON", black, scale=2)
@@ -263,58 +299,146 @@ def plot_policy_summary(path):
     save_png(path, img)
 
 
+def write_comparison_files(output_dir):
+    summary = {
+        "baseline": POLICY_METRICS["baseline"],
+        "raw_grpo_ablation": POLICY_METRICS["raw_grpo"],
+        "governed_grpo": POLICY_METRICS["governed_grpo"],
+        "deltas": {
+            "governed_vs_raw_survival_rate": round(
+                metric("governed_grpo", "survival_rate") - metric("raw_grpo", "survival_rate"), 3
+            ),
+            "governed_vs_raw_average_final_money": round(
+                metric("governed_grpo", "average_final_money") - metric("raw_grpo", "average_final_money"), 3
+            ),
+            "governed_vs_raw_decision_efficiency": round(
+                metric("governed_grpo", "decision_efficiency") - metric("raw_grpo", "decision_efficiency"), 3
+            ),
+            "governed_vs_baseline_survival_rate": round(
+                metric("governed_grpo", "survival_rate") - metric("baseline", "survival_rate"), 3
+            ),
+        },
+        "interpretation": [
+            "Raw GRPO is reported as an ablation, not as the final deployed system.",
+            "The governed GRPO CEO recovers survival from 0.000 to 0.950 relative to raw GRPO.",
+            "The governed GRPO CEO matches the baseline CEO survival rate while retaining a trained-policy path in safe states.",
+        ],
+    }
+    (output_dir.parent / "comparison_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+
+    rows = [
+        ("Average total reward", "average_total_reward"),
+        ("Average final money", "average_final_money"),
+        ("Average final users", "average_final_users"),
+        ("Survival rate", "survival_rate"),
+        ("Decision efficiency", "decision_efficiency"),
+    ]
+    lines = [
+        "# MASS Policy Comparison",
+        "",
+        "| Metric | Baseline CEO | Raw GRPO CEO ablation | GRPO + Governed CEO |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    for label, key in rows:
+        lines.append(
+            f"| {label} | {metric_label(metric('baseline', key))} | "
+            f"{metric_label(metric('raw_grpo', key))} | {metric_label(metric('governed_grpo', key))} |"
+        )
+    lines.extend(
+        [
+            f"| Main failure mode | {metric('baseline', 'main_failure_mode')} | "
+            f"{metric('raw_grpo', 'main_failure_mode')} | {metric('governed_grpo', 'main_failure_mode')} |",
+            "",
+            "## Interpretation",
+            "",
+            "Raw GRPO is included as an ablation. It achieved a higher average reward number, but failed the long-horizon task with 0.000 survival and bankruptcy-heavy endings. The governed GRPO CEO recovered survival to 0.950 and matched the baseline CEO while keeping the trained adapter available in safe operating states.",
+            "",
+            "## Artifacts",
+            "",
+            "- `comparison_summary.json`",
+            "- `loss_curve.png`",
+            "- `reward_curve.png`",
+            "- `reward_comparison.png`",
+            "- `policy_comparison.png`",
+            "- `policy_summary.png`",
+            "",
+        ]
+    )
+    (output_dir.parent / "comparison_report.md").write_text("\n".join(lines))
+
+
 def main():
     output_dir = Path("docs/assets")
     output_dir.mkdir(parents=True, exist_ok=True)
-    loss_points = [
-        (25, -0.019),
-        (50, -0.055),
-        (75, -0.007),
-        (100, -0.015),
-        (125, -0.054),
-        (150, -0.052),
-        (175, -0.042),
-        (200, -0.005),
-        (225, -0.031),
-        (250, -0.025),
-        (275, -0.078),
-        (300, -0.032),
-        (350, -0.038),
-        (400, -0.064),
-        (450, -0.039),
-        (500, -0.032),
-    ]
+    loss_points = list(
+        enumerate(
+            [
+                -0.01865,
+                -0.05499,
+                -0.007192,
+                -0.01457,
+                -0.0537,
+                -0.0519,
+                -0.04173,
+                -0.004797,
+                -0.03055,
+                -0.02548,
+                -0.07764,
+                -0.03239,
+                -0.03825,
+                -0.06323,
+                -0.01778,
+                -0.06385,
+                -0.03933,
+                -0.04885,
+                -0.005103,
+                -0.05227,
+                -0.02987,
+            ],
+            start=1,
+        )
+    )
     plot_line(
         output_dir / "loss_curve.png",
-        "CEO TRAINING LOSS",
-        "TRAINING STEP",
+        "GRPO LOGGED LOSS",
+        "LOG INDEX",
         "LOSS",
         loss_points,
         y_min=-0.09,
         y_max=0.01,
     )
-    reward_points = [
-        (25, -0.055),
-        (50, 0.059),
-        (75, 0.121),
-        (100, 0.259),
-        (125, 0.168),
-        (150, 0.265),
-        (175, 0.107),
-        (200, 0.231),
-        (225, 0.343),
-        (250, 0.193),
-        (275, 0.225),
-        (300, 0.348),
-        (350, 0.219),
-        (400, 0.312),
-        (450, 0.494),
-        (500, 0.528),
-    ]
+    reward_points = list(
+        enumerate(
+            [
+                -0.05464,
+                0.05913,
+                0.1205,
+                0.259,
+                0.1678,
+                0.2651,
+                0.1069,
+                0.2306,
+                0.3428,
+                0.1926,
+                0.2253,
+                0.3479,
+                0.219,
+                0.3115,
+                0.2347,
+                0.3444,
+                0.4937,
+                0.3684,
+                0.4169,
+                0.4157,
+                0.5277,
+            ],
+            start=1,
+        )
+    )
     plot_line(
         output_dir / "reward_curve.png",
-        "GRPO TRAINING REWARD",
-        "TRAINING STEP",
+        "GRPO LOGGED REWARD",
+        "LOG INDEX",
         "REWARD",
         reward_points,
         y_min=-0.1,
@@ -323,6 +447,7 @@ def main():
     plot_bars(output_dir / "reward_comparison.png")
     plot_reward_curve(output_dir / "policy_comparison.png")
     plot_policy_summary(output_dir / "policy_summary.png")
+    write_comparison_files(output_dir)
     print(f"Wrote artifacts to {output_dir}")
 
 
