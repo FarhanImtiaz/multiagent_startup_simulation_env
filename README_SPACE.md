@@ -44,4 +44,6 @@ Valid CEO actions:
 
 ## Training
 
-The CEO policy is trained with Hugging Face TRL GRPO. Final comparison metrics and plots are shown in the Training Result tab after the Colab evaluation artifacts are copied into `docs/`.
+The CEO policy is trained with Hugging Face TRL GRPO on Qwen2.5-0.5B. The final demo compares the raw GRPO CEO, the heuristic CEO, and a governed GRPO CEO that uses an environment-aware survival controller.
+
+Final plots are committed under `docs/assets/` and shown in the Training Result tab.

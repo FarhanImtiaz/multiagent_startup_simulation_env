@@ -101,8 +101,11 @@ python train_ceo_grpo.py \
   --num-generations 4 \
   --gradient-accumulation-steps 8 \
   --save-steps 50 \
+  --report-to tensorboard \
   --max-steps 500
 ```
+
+The run logs training metrics for TensorBoard-compatible tracking, while the final submission commits the loss and reward plots as image files so the evidence does not live only in a Colab cell.
 
 Third, evaluate against the baseline:
 
@@ -155,4 +158,4 @@ The main lesson was that long-horizon RL needs more than a scalar reward and a t
 
 - Code: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 - Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-- Colab notebook: ../notebooks/MASS_CEO_Training_Colab.ipynb
+- Colab notebook: https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb

@@ -34,6 +34,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--logging-steps", type=int, default=10)
     parser.add_argument("--save-steps", type=int, default=100)
     parser.add_argument("--max-steps", type=int, default=-1)
+    parser.add_argument(
+        "--report-to",
+        default="tensorboard",
+        help="Experiment tracker for TRL logs. Use 'wandb' when WANDB_API_KEY is configured, or 'none' to disable.",
+    )
     parser.add_argument("--no-lora", action="store_true")
     return parser.parse_args()
 
@@ -64,7 +69,7 @@ def main() -> None:
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
         max_steps=args.max_steps,
-        report_to="none",
+        report_to=args.report_to,
     )
 
     peft_config = None

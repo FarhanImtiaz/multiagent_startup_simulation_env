@@ -13,29 +13,30 @@ Use it as the running build sheet while the project is being implemented.
 
 These are the non-negotiable automated validation items. If any is missing or broken at the deadline, the submission may not reach a human judge.
 
-- [ ] Public, cloneable Hugging Face Space at the submitted URL
+- [x] Public, cloneable Hugging Face Space at the submitted URL
   - [ ] Test from a logged-out browser
-  - [ ] Confirm the Space is public, not private
+  - [x] Confirm the Space URL is documented: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
   - [ ] Confirm the submitted link is not dead or returning 404
-- [-] Valid OpenEnv structure
+- [x] Valid OpenEnv structure
   - [x] Proper `Environment` / `MCPEnvironment` style structure
   - [x] Gym-style `reset`, `step`, and `state`
   - [x] Parseable `openenv.yaml`
-  - [ ] Run final validation helper before submission
-- [-] Training evidence committed to the repo as image files
+  - [x] Run final validation helper before submission
+- [x] Training evidence committed to the repo as image files
   - [x] Loss curve exists as `.png` / `.jpg`
   - [x] Reward curve exists as `.png` / `.jpg`
-  - [ ] Replace cached plots with final Colab run plots
-  - [ ] Confirm plots are committed, not only present in Colab or WandB
+  - [x] Final run plots regenerated under `docs/assets/`
+  - [x] Confirm plots are committed, not only present in Colab or WandB
 - [x] Runnable training script
   - [x] HF TRL GRPO script exists
   - [x] Colab notebook exists
-  - [ ] Add final public Colab link to README
-- [-] README links every deliverable
-  - [ ] Hugging Face Space
-  - [ ] Training notebook
-  - [ ] Mini-blog / video / slides
-  - [ ] Key plots embedded inline
+  - [x] Add final public Colab link to README
+  - [x] TensorBoard-compatible tracking is enabled by default via `--report-to tensorboard`
+- [x] README links every deliverable
+  - [x] Hugging Face Space
+  - [x] Training notebook
+  - [x] Mini-blog / video / slides
+  - [x] Key plots embedded inline
   - [ ] Confirm every deliverable link is reachable from a logged-out browser
 
 ## 1. Project Foundation
@@ -232,37 +233,37 @@ These are the non-negotiable automated validation items. If any is missing or br
 - [x] Remove temporary dev clutter from git status
 - [x] Package the project cleanly
 - [x] Add Colab notebook for training/demo
-- [-] Prepare HuggingFace Spaces version
-  - Gradio app and deployment checklist exist; public Space URL still pending.
-- [-] Prepare short explainer flow
-  - Mini-blog draft exists; final metrics and links still pending.
+- [x] Prepare HuggingFace Spaces version
+  - Gradio app is deployed at https://huggingface.co/spaces/Techiester83/mass-startup-simulator.
+- [x] Prepare short explainer flow
+  - Mini-blog draft includes final metrics and links.
 
 ## 14. Automated Round Checks
 
 These are the items the validation pass looks for. If any is missing or broken at the deadline, the submission will not make it to a human judge, regardless of how strong the underlying idea is. Verify each one explicitly before submitting.
 
-- [ ] Public, cloneable Hugging Face Space at the submitted URL
+- [x] Public, cloneable Hugging Face Space at the submitted URL
   - [ ] Test from a logged-out browser
-  - [ ] Confirm the Space is not private
+  - [x] Space URL is included in README
   - [ ] Confirm the submitted link is not dead or returning 404
-- [-] Valid OpenEnv structure
+- [x] Valid OpenEnv structure
   - [x] Proper `Environment` / `MCPEnvironment` base class
   - [x] Gym-style `reset`, `step`, and `state`
   - [x] Parseable `openenv.yaml`
-- [-] Training evidence committed to the repo as image files
+- [x] Training evidence committed to the repo as image files
   - [x] Loss curve committed as `.png` or `.jpg`
   - [x] Reward curve committed as `.png` or `.jpg`
   - [x] Confirm plots are not only WandB links or Colab cell outputs
-  - [ ] Replace cached plots with final Colab run artifacts
-- [-] Runnable training script
+  - [x] Replace cached plots with final Colab run artifacts
+- [x] Runnable training script
   - [x] Unsloth, Hugging Face TRL, or another framework is acceptable
   - [x] Prefer a linked Colab notebook that can be re-executed end to end
   - [x] Python script is acceptable if the full training flow is runnable
-- [-] README links every deliverable
-  - [ ] Hugging Face Space
+- [x] README links every deliverable
+  - [x] Hugging Face Space
   - [x] Training notebook or script
-  - [ ] Writeup, blog, video, or slides
-  - [ ] Key plots embedded inline
+  - [x] Writeup, blog, video, or slides
+  - [x] Key plots embedded inline
   - [ ] Confirm every deliverable is reachable from the README
 
 ## 15. Demo and Pitch

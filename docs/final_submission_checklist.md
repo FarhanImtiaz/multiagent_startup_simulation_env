@@ -4,39 +4,38 @@ Use this checklist before submitting. These are the automated validation gates a
 
 ## Automated Validation Gates
 
-- [ ] Public Hugging Face Space URL is submitted.
-- [ ] Space is public and cloneable.
+- [x] Public Hugging Face Space URL is submitted.
+- [x] Space is public and cloneable.
 - [ ] Space works from a logged-out browser.
 - [ ] Space URL does not return 404.
-- [ ] `openenv.yaml` is parseable.
-- [ ] Environment has `reset`, `step`, and `state`.
-- [ ] OpenEnv validation helper passes.
-- [ ] Training evidence is committed as image files.
-- [ ] Loss curve is committed as `.png` or `.jpg`.
-- [ ] Reward curve is committed as `.png` or `.jpg`.
-- [ ] Plots are not only in Colab or WandB.
-- [ ] Runnable training script exists.
-- [ ] Public Colab notebook link is in README.
-- [ ] README links every deliverable.
-- [ ] README embeds key plots inline.
+- [x] `openenv.yaml` is parseable.
+- [x] Environment has `reset`, `step`, and `state`.
+- [x] OpenEnv validation helper passes.
+- [x] Training evidence is committed as image files.
+- [x] Loss curve is committed as `.png` or `.jpg`.
+- [x] Reward curve is committed as `.png` or `.jpg`.
+- [x] Plots are not only in Colab or WandB.
+- [x] Runnable training script exists.
+- [x] Public Colab notebook link is in README.
+- [x] README links every deliverable.
+- [x] README embeds key plots inline.
 
 ## Links To Fill
 
-- GitHub repo: TODO
-- Hugging Face Space: TODO
-- Public Colab notebook: TODO
-- Hugging Face mini-blog / video / slides: TODO
+- GitHub repo: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
+- Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
+- Public Colab notebook: https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb
+- Mini-blog / writeup: `docs/miniblog_draft.md`
 
 ## Final Artifact Copy
 
-After Colab evaluation, copy these into the repo:
+Committed final artifacts:
 
 - `docs/assets/loss_curve.png`
 - `docs/assets/reward_curve.png`
 - `docs/assets/reward_comparison.png`
 - `docs/assets/policy_comparison.png`
-- `docs/comparison_summary.json`
-- `docs/comparison_report.md`
+- `docs/assets/policy_summary.png`
 
 ## Final Smoke Tests
 

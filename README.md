@@ -20,7 +20,7 @@ The project is built for the OpenEnv hackathon themes of **multi-agent interacti
 ## Deliverables
 
 - Hugging Face Space: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-- Colab training notebook: [notebooks/MASS_CEO_Training_Colab.ipynb](notebooks/MASS_CEO_Training_Colab.ipynb)
+- Colab training notebook: [Open in Colab](https://colab.research.google.com/github/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/notebooks/MASS_CEO_Training_Colab.ipynb)
 - Mini-blog / writeup: [docs/miniblog_draft.md](docs/miniblog_draft.md)
 - Code repository: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env
 
@@ -150,8 +150,11 @@ python3 train_ceo_grpo.py \
   --num-generations 4 \
   --gradient-accumulation-steps 8 \
   --save-steps 50 \
+  --report-to tensorboard \
   --max-steps 500
 ```
+
+Training logs are written to the TRL output directory for TensorBoard-compatible experiment tracking, and final loss/reward plots are committed under `docs/assets/`.
 
 Evaluate baseline and trained CEO:
 
