@@ -14,9 +14,9 @@ Use it as the running build sheet while the project is being implemented.
 These are the non-negotiable automated validation items. If any is missing or broken at the deadline, the submission may not reach a human judge.
 
 - [x] Public, cloneable Hugging Face Space at the submitted URL
-  - [ ] Test from a logged-out browser
+  - [x] Test from a logged-out browser
   - [x] Confirm the Space URL is documented: https://huggingface.co/spaces/Techiester83/mass-startup-simulator
-  - [ ] Confirm the submitted link is not dead or returning 404
+  - [x] Confirm the submitted link is not dead or returning 404
 - [x] Valid OpenEnv structure
   - [x] Proper `Environment` / `MCPEnvironment` style structure
   - [x] Gym-style `reset`, `step`, and `state`
@@ -243,9 +243,9 @@ These are the non-negotiable automated validation items. If any is missing or br
 These are the items the validation pass looks for. If any is missing or broken at the deadline, the submission will not make it to a human judge, regardless of how strong the underlying idea is. Verify each one explicitly before submitting.
 
 - [x] Public, cloneable Hugging Face Space at the submitted URL
-  - [ ] Test from a logged-out browser
+  - [x] Test from a logged-out browser
   - [x] Space URL is included in README
-  - [ ] Confirm the submitted link is not dead or returning 404
+  - [x] Confirm the submitted link is not dead or returning 404
 - [x] Valid OpenEnv structure
   - [x] Proper `Environment` / `MCPEnvironment` base class
   - [x] Gym-style `reset`, `step`, and `state`
@@ -334,4 +334,4 @@ These are the items the validation pass looks for. If any is missing or broken a
 - LLM integration: trained CEO path implemented with safety gate
 - Training: TRL GRPO script and two-part Colab workflow exist; final 500-step run/evaluation artifacts are committed
 - OpenEnv packaging: manifest and package scaffold added; needs final CLI/Space validation
-- Demo packaging: Gradio app, README story, Space checklist, and mini-blog draft exist; public Space URL and final links still missing
+- Demo packaging: Gradio app, README story, Space checklist, public Space URL, and mini-blog links are ready

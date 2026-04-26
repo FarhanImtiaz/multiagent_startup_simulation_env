@@ -6,8 +6,8 @@ Use this checklist before submitting. These are the automated validation gates a
 
 - [x] Public Hugging Face Space URL is submitted.
 - [x] Space is public and cloneable.
-- [ ] Space works from a logged-out browser.
-- [ ] Space URL does not return 404.
+- [x] Space works from a logged-out browser.
+- [x] Space URL does not return 404.
 - [x] `openenv.yaml` is parseable.
 - [x] Environment has `reset`, `step`, and `state`.
 - [x] OpenEnv validation helper passes.
@@ -27,7 +27,7 @@ Use this checklist before submitting. These are the automated validation gates a
 - Public Colab part 1, training run: https://colab.research.google.com/drive/1CrJwaFnwbxXTfkwnaTecEiFlgvx1nIcm?usp=sharing
 - Public Colab part 2, recovery/evaluation/artifacts: https://colab.research.google.com/drive/1ak2B8CFUIaCk4m-rvYeaAXskTZfDMX3u?usp=sharing
 - Combined repo notebook: `notebooks/MASS_CEO_Training_Colab.ipynb`
-- Mini-blog / writeup: `docs/miniblog_draft.md`
+- Mini-blog / writeup: https://github.com/FarhanImtiaz/multiagent_startup_simulation_env/blob/main/docs/miniblog_draft.md
 
 ## Final Artifact Copy
 
