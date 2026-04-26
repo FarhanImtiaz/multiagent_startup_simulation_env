@@ -69,6 +69,8 @@ The startup can succeed or fail based on product quality, user growth, cash runw
 - `train_ceo_grpo.py`: Hugging Face TRL GRPO script for the CEO policy.
 - `compare_policies.py`: one-command baseline vs trained CEO comparison.
 - `app.py`: Gradio Hugging Face Space demo.
+- `docs/huggingface_space_deployment.md`: Space publishing checklist.
+- `docs/miniblog_draft.md`: short project writeup with final-result placeholders.
 - `Project_Overview.md`: original hackathon/product framing.
 - `TEMP_IMPLEMENTATION_CHECKLIST.md`: temporary progress tracker.
 - `TEMP_CODEBASE_GUIDE.md`: temporary deep codebase walkthrough for development and onboarding.
@@ -277,6 +279,11 @@ Replace these placeholders before submitting:
 - Colab notebook: TODO
 - Code repository: TODO
 - Video or blog: TODO
+
+Supporting submission docs:
+
+- [Hugging Face Space deployment checklist](docs/huggingface_space_deployment.md)
+- [Mini-blog draft](docs/miniblog_draft.md)
 
 ## Known Limitation
 
