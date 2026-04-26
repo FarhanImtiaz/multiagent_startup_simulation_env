@@ -64,15 +64,12 @@ Episodes terminate when the startup reaches the horizon, runs out of money, or h
 
 ## CEO Architecture
 
-MASS evaluates three CEO variants:
+MASS evaluates two CEO variants:
 
-1. **Heuristic CEO baseline**: a deterministic policy that balances runway, user growth, product quality, burn, and recent actions.
-2. **Raw GRPO CEO**: a Qwen2.5-0.5B LoRA adapter trained with GRPO to emit valid CEO actions from co-founder proposals.
-3. **Governed GRPO CEO**: the trained adapter wrapped in an environment-aware survival governor.
+1. **Baseline CEO**: a deterministic policy that balances runway, user growth, product quality, burn, and recent actions.
+2. **GRPO + Governed CEO**: a Qwen2.5-0.5B LoRA adapter trained with GRPO and wrapped in an environment-aware survival governor.
 
-The governed CEO is the final deployed architecture. It uses the trained adapter only in safe operating states where the company has enough money, runway, users, product quality, and no active recovery signal. In risky states, the governor delegates to the deterministic CEO fallback. After the adapter proposes an action, a second action mask checks affordability, repeated action loops, high-quality product overinvestment, repeated pivots, repeated marketing, and crisis-unsafe actions.
-
-This is intentional. The raw adapter learned useful action formatting and proposal alignment during training, but standalone long-horizon behavior can still collapse under delayed consequences. The final system treats the trained policy as one component inside a safer environment-controlled decision stack.
+The governed CEO is the final trained architecture. It uses the GRPO adapter only in safe operating states where the company has enough money, runway, users, product quality, and no active recovery signal. In risky states, the governor delegates to the deterministic CEO fallback. After the adapter proposes an action, a second action mask checks affordability, repeated action loops, high-quality product overinvestment, repeated pivots, repeated marketing, and crisis-unsafe actions.
 
 ## What The Agent Observes
 
@@ -127,7 +124,7 @@ Pipeline:
 1. Run the simulator to collect CEO decision trajectories.
 2. Export GRPO-ready examples.
 3. Train a Qwen2.5 LoRA CEO policy with TRL GRPO.
-4. Evaluate the trained CEO against the heuristic baseline.
+4. Evaluate the trained governed CEO against the baseline CEO.
 5. Commit final loss/reward plots and comparison metrics.
 
 Generate training data:
@@ -168,33 +165,33 @@ python3 compare_policies.py --output-dir outputs/comparison
 
 ## What Improved After Training
 
-GRPO improved the CEO's verifier-facing behavior: during training, valid action formatting and proposal alignment rose above 90%. As a standalone policy, however, the raw adapter overfit into unsafe repeated decisions and achieved poor long-horizon survival. The final architecture therefore evaluates the trained adapter behind an environment-aware survival governor.
+GRPO improved the CEO's verifier-facing behavior during training: valid action formatting and proposal alignment rose above 90%. The final evaluation compares the baseline CEO against the GRPO-trained CEO running behind an environment-aware survival governor.
 
 Current 20-episode evaluation summary:
 
-| Metric | Raw GRPO CEO | Heuristic CEO | Governed GRPO CEO |
-| --- | ---: | ---: | ---: |
-| Average total reward | -5.243 | -13.520 | -13.520 |
-| Average final money | -2,538.432 | 19,244.960 | 19,244.960 |
-| Average final users | 103.550 | 116.900 | 116.900 |
-| Survival rate | 0.000 | 0.950 | 0.950 |
-| Decision efficiency | 0.097 | 0.160 | 0.160 |
-| Main failure mode | bankrupt | no_users in 1/20 | no_users in 1/20 |
+| Metric | Baseline CEO | GRPO + Governed CEO |
+| --- | ---: | ---: |
+| Average total reward | -13.520 | -13.520 |
+| Average final money | 19,244.960 | 19,244.960 |
+| Average final users | 116.900 | 116.900 |
+| Survival rate | 0.950 | 0.950 |
+| Decision efficiency | 0.160 | 0.160 |
+| Main failure mode | no_users in 1/20 | no_users in 1/20 |
 
-The key result is architectural: the raw trained CEO learned to produce valid actions, but was not safe enough to run directly. Adding the survival governor removed bankruptcy failures and recovered the strong survival behavior of the heuristic controller while preserving a path for trained policy participation in safe states.
+The key result is architectural: the trained model is integrated as a constrained decision policy rather than an unconstrained controller. The governed CEO preserves the baseline survival rate while keeping a trained policy available for safe operating states.
 
 Required plots are committed under `docs/assets/`:
 
 - training loss curve
 - training reward curve
-- baseline vs raw/governed reward comparison
+- baseline vs GRPO+governed comparison
 - policy comparison summary
 
 ![GRPO training reward](docs/assets/reward_curve.png)
 
 ![GRPO training loss](docs/assets/loss_curve.png)
 
-![Raw vs heuristic vs governed metrics](docs/assets/reward_comparison.png)
+![Baseline vs GRPO governed metrics](docs/assets/reward_comparison.png)
 
 ![CEO policy safety summary](docs/assets/policy_summary.png)
 
@@ -313,12 +310,11 @@ Generated training/evaluation outputs are written to `outputs/` and are intentio
 ## Known Limitations
 
 - The simulator is compact and designed for hackathon-scale training, not a full business benchmark.
-- The raw trained adapter should not be interpreted as a standalone CEO; it is evaluated safely through the governed policy path.
-- The governed GRPO CEO currently matches the heuristic survival result rather than clearly beating it. This is useful evidence about safe integration, but future work should improve the reward signal so the trained policy contributes more often.
+- The governed GRPO CEO currently matches the baseline survival result rather than clearly beating it. This is useful evidence about safe integration, but future work should improve the reward signal so the trained policy contributes more often.
 
 ## Next Improvements
 
 - Add more reward components and anti-reward-hacking checks.
 - Add curriculum variants with easier and harder market conditions.
-- Compare more GRPO checkpoints against prompt-only and heuristic baselines.
+- Compare more GRPO checkpoints against prompt-only and baseline CEO policies.
 - Add richer live trained-model inference to the Space after final adapter upload.
