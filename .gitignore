@@ -80,6 +80,9 @@ flagged/
 *.zip
 *.whl
 
+# Local clone of the Hugging Face Space deployment repo
+mass-startup-simulator/
+
 # Editor, OS, and shell noise
 .idea/
 .vscode/
