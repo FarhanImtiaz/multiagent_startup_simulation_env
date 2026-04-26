@@ -140,6 +140,9 @@ class PromptedCEO:
         "run_marketing_campaign": 7000,
         "pivot_strategy": 11000,
     }
+    ADAPTER_ALLOWED_RUNWAY = 6.0
+    ADAPTER_ALLOWED_MONEY = 60000.0
+    ADAPTER_ALLOWED_USERS = 100
 
     def __init__(
         self,
@@ -155,6 +158,15 @@ class PromptedCEO:
 
     def choose_action(self, proposals: Dict[str, ActionProposal], observation: Dict[str, object]) -> ActionProposal:
         fallback = self.fallback_agent.choose_action(proposals, observation)
+        fallback_reason = self._fallback_governor_reason(fallback, observation)
+        if fallback_reason is not None:
+            self.last_prompt = None
+            self.last_raw_response = None
+            return ActionProposal(
+                action=fallback.action,
+                reasoning=f"Survival governor delegated to deterministic CEO: {fallback_reason} {fallback.reasoning}",
+            )
+
         prompt = self.build_prompt(proposals, observation, fallback)
         self.last_prompt = prompt
 
@@ -186,6 +198,44 @@ class PromptedCEO:
                 ),
             )
         return ActionProposal(action=action, reasoning=f"LLM-selected final decision: {action}")
+
+    def _fallback_governor_reason(
+        self,
+        fallback: ActionProposal,
+        observation: Dict[str, object],
+    ) -> Optional[str]:
+        runway = float(observation.get("runway_hint", 999))
+        money = float(observation.get("money", 0.0))
+        users = int(observation.get("users", 0))
+        quality = float(observation.get("product_quality", 0.0))
+        recent_growth = float(observation.get("recent_user_growth", 0))
+        trend = str(observation.get("trend_direction", "stable"))
+        crisis_level = str(observation.get("crisis_level", "normal"))
+        recent_actions = list(observation.get("recent_actions", []))
+        consecutive_streak = int(observation.get("consecutive_action_streak", 0))
+
+        if crisis_level == "crisis" or runway < self.CASH_CONTROL_RUNWAY or money < self.CASH_CONTROL_MONEY:
+            return "cash or runway is in the control zone."
+
+        if users < self.ADAPTER_ALLOWED_USERS:
+            return "user base is too low to risk an unconstrained model decision."
+
+        if fallback.action != "do_nothing":
+            return "the fallback identified an active survival or recovery move."
+
+        if trend == "declining" or recent_growth < -10:
+            return "growth is deteriorating, so recovery discipline takes priority."
+
+        if quality < 0.58:
+            return "product quality is below the safe scaling threshold."
+
+        if consecutive_streak >= 3 and recent_actions and recent_actions[-1] != "do_nothing":
+            return "the episode is already in a repeated-action pattern."
+
+        if runway < self.ADAPTER_ALLOWED_RUNWAY or money < self.ADAPTER_ALLOWED_MONEY:
+            return "the buffer is adequate but not large enough for optional model exploration."
+
+        return None
 
     def _apply_safety_gate(
         self,
