@@ -109,7 +109,19 @@ class StartupEnvironment:
             "recent_actions": list(self.state.recent_actions[-5:]),
             "last_action": last_action,
             "consecutive_action_streak": consecutive_action_streak,
+            "last_event": self.state.last_event,
             "recent_events": list(self.state.recent_events[-3:]),
+            "market_demand": round(self.hidden_state.market_demand, 3),
+            "competition_level": round(self.hidden_state.competition_level, 3),
+            "economic_condition": round(self.hidden_state.economic_condition, 3),
+            "pending_effects": [
+                {
+                    "name": effect.name,
+                    "eta": effect.eta,
+                    "payload": dict(effect.payload),
+                }
+                for effect in self.pending_effects
+            ],
             "runway_hint": runway_hint,
             "is_crisis": crisis_level == "crisis",
             "crisis_level": crisis_level,
@@ -126,7 +138,19 @@ class StartupEnvironment:
                 "team_size": self.state.team_size,
                 "burn_rate": round(self.state.burn_rate, 2),
                 "recent_actions": list(self.state.recent_actions[-5:]),
+                "last_event": self.state.last_event,
                 "recent_events": list(self.state.recent_events[-3:]),
+                "market_demand": round(self.hidden_state.market_demand, 3),
+                "competition_level": round(self.hidden_state.competition_level, 3),
+                "economic_condition": round(self.hidden_state.economic_condition, 3),
+                "pending_effects": [
+                    {
+                        "name": effect.name,
+                        "eta": effect.eta,
+                        "payload": dict(effect.payload),
+                    }
+                    for effect in self.pending_effects
+                ],
                 "growth_history": self._get_growth_window(),
                 "trend_direction": self._infer_trend_direction(self._get_growth_window()),
                 "crisis_level": self._get_crisis_status(

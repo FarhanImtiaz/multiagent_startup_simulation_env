@@ -191,6 +191,12 @@ def build_grpo_records(
                     "ad_performance": observation["ad_performance"],
                     "runway_hint": observation["runway_hint"],
                     "crisis_level": observation["crisis_level"],
+                    "last_event": observation["last_event"],
+                    "recent_events": observation["recent_events"],
+                    "market_demand": observation["market_demand"],
+                    "competition_level": observation["competition_level"],
+                    "economic_condition": observation["economic_condition"],
+                    "pending_effects": observation["pending_effects"],
                     "recent_actions": observation["recent_actions"],
                 }
             )
@@ -232,7 +238,12 @@ def _format_training_prompt(step: Dict[str, object]) -> str:
         f"- Runway hint: {observation['runway_hint']}\n"
         f"- Crisis level: {observation['crisis_level']}\n"
         f"- Crisis reason: {observation['crisis_reason']}\n"
+        f"- Last event: {observation['last_event']}\n"
         f"- Recent events: {observation['recent_events']}\n"
+        f"- Market demand: {observation['market_demand']}\n"
+        f"- Competition level: {observation['competition_level']}\n"
+        f"- Economic condition: {observation['economic_condition']}\n"
+        f"- Pending effects: {observation['pending_effects']}\n"
         f"- Recent actions: {observation['recent_actions']}\n\n"
         "Co-founder proposals:\n"
         f"{chr(10).join(proposal_lines)}\n\n"

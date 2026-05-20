@@ -129,7 +129,10 @@ def _print_compact_step(
         f"trend={observation['trend_direction']}, "
         f"runway={observation['runway_hint']}, "
         f"crisis={observation['crisis_level']}, "
-        f"event={result['event']}"
+        f"event={result['event']}, "
+        f"market={observation['market_demand']}, "
+        f"competition={observation['competition_level']}, "
+        f"economy={observation['economic_condition']}"
     )
     print(f"  proposals: {proposal_summary}")
     print(f"  CEO: {_shorten(selected.reasoning, 220)}")
@@ -155,7 +158,12 @@ def _print_full_step(
         f" crisis_level={observation['crisis_level']},"
         f" last_action={observation['last_action']},"
         f" streak={observation['consecutive_action_streak']},"
-        f" events={observation['recent_events']}"
+        f" last_event={observation['last_event']},"
+        f" events={observation['recent_events']},"
+        f" market={observation['market_demand']},"
+        f" competition={observation['competition_level']},"
+        f" economy={observation['economic_condition']},"
+        f" pending_effects={observation['pending_effects']}"
     )
     print(f"  crisis_reason={observation['crisis_reason']}")
     print(f"  CEO reasoning: {selected.reasoning}")

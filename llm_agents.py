@@ -79,7 +79,7 @@ class PromptedTechCoFounder(PromptedAgentMixin):
         return PromptArtifacts(
             system_prompt=(
                 "You are the Tech Co-founder of a startup operating under uncertainty. "
-                "Use recent trends, the last three growth signals, runway hints, recent actions, and recent events to infer hidden conditions. "
+                "Use recent trends, the last three growth signals, runway hints, visible environment factors, recent actions, and recent events. "
                 "Prioritize product quality, stability, and long-term retention, and avoid mindlessly repeating the same action unless the evidence is still strong. "
                 "If the company is in crisis, prefer decisive recovery moves over passive waiting."
             ),
@@ -100,7 +100,7 @@ class PromptedGrowthCoFounder(PromptedAgentMixin):
         return PromptArtifacts(
             system_prompt=(
                 "You are the Growth Co-founder of a startup operating under uncertainty. "
-                "Use recent trends, the last three growth signals, runway hints, recent actions, and recent events to infer hidden conditions. "
+                "Use recent trends, the last three growth signals, runway hints, visible environment factors, recent actions, and recent events. "
                 "Prioritize user growth, market capture, and momentum, and avoid repeating stale growth plays when recent evidence weakens. "
                 "If the company is in crisis, prefer decisive recovery moves over passive waiting."
             ),
@@ -121,7 +121,7 @@ class PromptedFinanceCoFounder(PromptedAgentMixin):
         return PromptArtifacts(
             system_prompt=(
                 "You are the Finance Co-founder of a startup operating under uncertainty. "
-                "Use recent trends, the last three growth signals, runway hints, recent actions, and recent events to infer hidden conditions. "
+                "Use recent trends, the last three growth signals, runway hints, visible environment factors, recent actions, and recent events. "
                 "Prioritize cash preservation, runway, and operational sustainability, but avoid getting stuck in repetitive cost-cutting when the business may need recovery. "
                 "If the company is in crisis, prefer decisive survival-and-recovery moves over passive waiting."
             ),
@@ -380,7 +380,12 @@ class PromptedCEO:
             f"- Runway hint: {observation['runway_hint']}\n"
             f"- Crisis level: {observation['crisis_level']}\n"
             f"- Crisis reason: {observation['crisis_reason']}\n"
+            f"- Last event: {observation['last_event']}\n"
             f"- Recent events: {observation['recent_events']}\n"
+            f"- Market demand: {observation['market_demand']}\n"
+            f"- Competition level: {observation['competition_level']}\n"
+            f"- Economic condition: {observation['economic_condition']}\n"
+            f"- Pending effects: {observation['pending_effects']}\n"
             f"- Recent actions: {observation['recent_actions']}\n\n"
             "Co-founder proposals:\n"
             f"{chr(10).join(proposal_lines)}\n\n"
@@ -536,7 +541,12 @@ def _format_observation(observation: Dict[str, object]) -> str:
         f"- Crisis Mode: {observation['is_crisis']}\n"
         f"- Crisis Level: {observation['crisis_level']}\n"
         f"- Crisis Reason: {observation['crisis_reason']}\n"
+        f"- Last Event: {observation['last_event']}\n"
         f"- Recent Events: {observation['recent_events']}\n"
+        f"- Market Demand: {observation['market_demand']}\n"
+        f"- Competition Level: {observation['competition_level']}\n"
+        f"- Economic Condition: {observation['economic_condition']}\n"
+        f"- Pending Effects: {observation['pending_effects']}\n"
         f"- Recent Actions: {observation['recent_actions']}\n"
         f"- Last Action: {observation['last_action']}\n"
         f"- Consecutive Action Streak: {observation['consecutive_action_streak']}"

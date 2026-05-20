@@ -3,7 +3,7 @@ import re
 from collections import Counter
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional
 
 from datasets import load_dataset
 from peft import LoraConfig
@@ -34,6 +34,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--logging-steps", type=int, default=10)
     parser.add_argument("--save-steps", type=int, default=100)
     parser.add_argument("--max-steps", type=int, default=-1)
+    parser.add_argument(
+        "--resume-from-checkpoint",
+        default=None,
+        help="Checkpoint path to resume from, or 'latest' to resume from the newest checkpoint in --output-dir.",
+    )
     parser.add_argument(
         "--report-to",
         default="tensorboard",
@@ -93,9 +98,39 @@ def main() -> None:
         train_dataset=train_dataset,
         peft_config=peft_config,
     )
-    trainer.train()
+    resume_checkpoint = _resolve_resume_checkpoint(
+        args.resume_from_checkpoint,
+        Path(args.output_dir),
+    )
+    trainer.train(resume_from_checkpoint=resume_checkpoint)
     trainer.save_model(args.output_dir)
     print(f"Saved CEO GRPO model to {args.output_dir}")
+
+
+def _resolve_resume_checkpoint(
+    resume_from_checkpoint: Optional[str],
+    output_dir: Path,
+) -> Optional[str]:
+    if not resume_from_checkpoint:
+        return None
+
+    if resume_from_checkpoint != "latest":
+        return resume_from_checkpoint
+
+    checkpoints = []
+    for path in output_dir.glob("checkpoint-*"):
+        if not path.is_dir():
+            continue
+        try:
+            step = int(path.name.rsplit("-", 1)[1])
+        except (IndexError, ValueError):
+            continue
+        checkpoints.append((step, path))
+
+    if not checkpoints:
+        raise FileNotFoundError(f"No checkpoints found in {output_dir}")
+
+    return str(max(checkpoints)[1])
 
 
 def action_format_reward(
