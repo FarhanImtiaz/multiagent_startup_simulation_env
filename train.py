@@ -53,50 +53,6 @@ def save_jsonl(path: str, records: List[Dict[str, object]]) -> None:
             handle.write(json.dumps(record, ensure_ascii=True) + "\n")
 
 
-def build_sft_records(
-    trajectories: List[Dict[str, object]],
-    min_step_reward: float | None = None,
-    survivors_only: bool = False,
-    min_final_money: float | None = None,
-) -> List[Dict[str, object]]:
-    records: List[Dict[str, object]] = []
-    for trajectory in trajectories:
-        if not _trajectory_matches_filters(
-            trajectory,
-            survivors_only=survivors_only,
-            min_final_money=min_final_money,
-        ):
-            continue
-        for step in trajectory["steps"]:
-            if min_step_reward is not None and step["reward"] < min_step_reward:
-                continue
-            records.append(
-                {
-                    "episode_index": trajectory["episode_index"],
-                    "day": step["day"],
-                    "reward": step["reward"],
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": (
-                                "You are the CEO in a startup simulator. Choose one valid action "
-                                "from co-founder proposals while balancing survival, recovery, and growth."
-                            ),
-                        },
-                        {
-                            "role": "user",
-                            "content": _format_training_prompt(step),
-                        },
-                        {
-                            "role": "assistant",
-                            "content": f"Action: {step['chosen_action']}",
-                        },
-                    ],
-                }
-            )
-    return records
-
-
 def build_preference_records(
     trajectories: List[Dict[str, object]],
     min_step_reward: float | None = 0.0,
@@ -260,15 +216,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--agent-mode", choices=["heuristic", "prompt_scaffold", "trained_ceo"], default="heuristic")
     parser.add_argument("--output", default="outputs/trajectories.json")
-    parser.add_argument("--sft-output", default=None)
     parser.add_argument("--preference-output", default=None)
     parser.add_argument("--grpo-output", default=None)
-    parser.add_argument(
-        "--min-sft-reward",
-        type=float,
-        default=None,
-        help="Only include SFT steps with reward at or above this value. Defaults to all steps.",
-    )
     parser.add_argument(
         "--min-preference-reward",
         type=float,
@@ -307,16 +256,6 @@ def main() -> None:
         f" episodes={len(trajectories)}"
         f" output={args.output}"
     )
-    if args.sft_output:
-        sft_records = build_sft_records(
-            trajectories,
-            min_step_reward=args.min_sft_reward,
-            survivors_only=args.survivors_only,
-            min_final_money=args.min_final_money,
-        )
-        save_jsonl(args.sft_output, sft_records)
-        print(f"Saved SFT records count={len(sft_records)} output={args.sft_output}")
-
     if args.preference_output:
         preference_records = build_preference_records(
             trajectories,
@@ -341,7 +280,7 @@ def main() -> None:
         save_jsonl(args.grpo_output, grpo_records)
         print(f"Saved GRPO prompts count={len(grpo_records)} output={args.grpo_output}")
 
-    print("Optimizer/fine-tuning execution is external; this script prepares the data for it.")
+    print("GRPO optimizer execution is external; this script prepares the data for it.")
 
 
 if __name__ == "__main__":
