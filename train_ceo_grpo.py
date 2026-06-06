@@ -170,7 +170,11 @@ def simulator_proxy_reward(
     ad_performance: List[str],
     runway_hint: List[float],
     crisis_level: List[str],
-    recent_actions: List[List[str]],
+    recent_actions: Optional[List[List[str]]] = None,
+    recent_events: Optional[List[List[str]]] = None,
+    market_demand: Optional[List[float]] = None,
+    competition_level: Optional[List[float]] = None,
+    economic_condition: Optional[List[float]] = None,
     log_extra=None,
     log_metric=None,
     **_: Any,
@@ -199,7 +203,11 @@ def simulator_proxy_reward(
             ad_performance=str(ad_performance[index]),
             runway_hint=float(runway_hint[index]),
             crisis_level=str(crisis_level[index]),
-            recent_actions=list(recent_actions[index]),
+            recent_events=list(recent_events[index]) if recent_events else [],
+            market_demand=float(market_demand[index]) if market_demand else 0.7,
+            competition_level=float(competition_level[index]) if competition_level else 0.35,
+            economic_condition=float(economic_condition[index]) if economic_condition else 0.75,
+            recent_actions=list(recent_actions[index]) if recent_actions else [],
         )
         rewards.append(round(reward, 4))
 
@@ -256,48 +264,102 @@ def _state_action_bonus(
     ad_performance: str,
     runway_hint: float,
     crisis_level: str,
+    recent_events: List[str],
+    market_demand: float,
+    competition_level: float,
+    economic_condition: float,
     recent_actions: List[str],
 ) -> float:
     reward = 0.0
-    cash_stress = crisis_level == "crisis" or runway_hint < 2.0 or money < burn_rate * 2.0
+    spend_actions = {"hire_employee", "invest_in_product", "run_marketing_campaign", "pivot_strategy"}
+    action_costs = {
+        "hire_employee": 12000.0,
+        "invest_in_product": 9000.0,
+        "run_marketing_campaign": 7000.0,
+        "pivot_strategy": 11000.0,
+    }
+    crisis_stress = crisis_level == "crisis" or runway_hint < 2.0 or money < burn_rate * 2.0
+    cash_control = crisis_stress or runway_hint < 5.0 or money < 55000.0
+    safe_growth_buffer = runway_hint >= 5.5 and money >= 65000.0
     repeated = recent_actions[-2:].count(action) >= 2
+    recent_count = recent_actions[-5:].count(action)
     average_recent_growth = mean(last_3_growth) if last_3_growth else recent_user_growth
+    adverse_event = any(
+        event in {"competitor_launch", "market_crash", "tech_failure"}
+        for event in recent_events[-3:]
+    )
 
-    if cash_stress:
+    if crisis_stress:
         if action == "fire_employee":
-            reward += 0.9
+            reward += 2.4
         if action in CRISIS_DISALLOWED:
-            reward -= 1.2
+            reward -= 2.2
+        if action in {"invest_in_product", "pivot_strategy"}:
+            reward -= 1.3
         if action == "do_nothing":
-            reward -= 0.35
+            reward -= 0.55
 
-    if product_quality < 0.62 and action == "invest_in_product":
-        reward += 0.45
+    if cash_control:
+        if action == "fire_employee":
+            reward += 1.4
+        elif action == "do_nothing":
+            reward += 0.35
+        elif action in spend_actions:
+            reward -= 1.4
+
+    if action in spend_actions:
+        cost = action_costs[action]
+        if money < cost + burn_rate:
+            reward -= 1.6
+        elif money < cost + burn_rate * 2:
+            reward -= 0.8
+
+    if product_quality < 0.62 and action == "invest_in_product" and safe_growth_buffer:
+        reward += 0.35
+    if action == "invest_in_product" and (product_quality >= 0.72 or recent_count >= 2):
+        reward -= 0.7
     if product_quality < 0.55 and action == "run_marketing_campaign":
-        reward -= 0.35
+        reward -= 0.6
 
     if (
         action == "run_marketing_campaign"
-        and not cash_stress
+        and safe_growth_buffer
         and product_quality >= 0.62
+        and market_demand >= 0.5
+        and economic_condition >= 0.5
+        and competition_level <= 0.75
         and (trend_direction == "improving" or ad_performance == "good" or average_recent_growth > 8)
     ):
         reward += 0.45
 
     if trend_direction == "declining":
-        if action in {"invest_in_product", "pivot_strategy"}:
+        if action in {"invest_in_product", "pivot_strategy"} and safe_growth_buffer:
             reward += 0.25
         if action == "do_nothing":
             reward -= 0.3
+        if cash_control and action == "fire_employee":
+            reward += 0.6
+
+    if adverse_event:
+        if cash_control and action == "fire_employee":
+            reward += 0.5
+        if action == "pivot_strategy" and safe_growth_buffer and recent_count == 0:
+            reward += 0.25
 
     if action == "hire_employee":
         if runway_hint > 6.0 and average_recent_growth > 12 and product_quality > 0.68:
             reward += 0.35
         else:
-            reward -= 0.4
+            reward -= 0.9
+
+    if action == "pivot_strategy":
+        if recent_count > 0:
+            reward -= 0.8
+        if not safe_growth_buffer:
+            reward -= 0.8
 
     if repeated:
-        reward -= 0.45 if action != "fire_employee" else 0.2
+        reward -= 0.8 if action != "fire_employee" else 0.25
     return reward
 
 
